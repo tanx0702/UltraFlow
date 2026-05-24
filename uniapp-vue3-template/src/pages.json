@@ -1,0 +1,108 @@
+{
+  "easycom": {
+    "custom": {
+      "^u--(.*)": "uview-plus/components/u-$1/u-$1.vue",
+      "^up-(.*)": "uview-plus/components/u-$1/u-$1.vue",
+      "^u-([^-].*)": "uview-plus/components/u-$1/u-$1.vue",
+      "^(?!z-paging-refresh|z-paging-load-more)z-paging(.*)": "z-paging/components/z-paging$1/z-paging$1.vue"
+    }
+  },
+  "pages": [
+    {
+      "path": "pages/tab/dashboard/index",
+      "style": {
+        "navigationBarTitleText": "今日看板",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/tab/chat/index",
+      "style": {
+        "navigationBarTitleText": "极律空间"
+      }
+    },
+    {
+      "path": "pages/tab/stats/index",
+      "style": {
+        "navigationBarTitleText": "成长轨迹"
+      }
+    },
+    {
+      "path": "pages/tab/coach/index",
+      "style": {
+        "navigationBarTitleText": "教练配置"
+      }
+    }
+  ],
+  "subPackages": [
+    {
+      "root": "pages/common",
+      "pages": [
+        {
+          "path": "login/index",
+          "style": {
+            "navigationBarTitleText": "登录",
+            "navigationStyle": "custom"
+          }
+        },
+        {
+          "path": "webview/index",
+          "style": {
+            "navigationBarTitleText": "网页"
+          }
+        },
+        {
+          "path": "404/index",
+          "style": {
+            "navigationBarTitleText": "404",
+            "navigationStyle": "custom"
+          }
+        }
+      ]
+    }
+  ],
+  "preloadRule": {
+    "pages/tab/dashboard/index": {
+      "network": "all",
+      "packages": ["pages/common"]
+    }
+  },
+  "tabBar": {
+    "color": "#94A3B8",
+    "selectedColor": "#0EA5E9",
+    "borderStyle": "black",
+    "backgroundColor": "#1E293B",
+    "list": [
+      {
+        "iconPath": "static/images/tabbar/dashboard.png",
+        "selectedIconPath": "static/images/tabbar/dashboard-active.png",
+        "pagePath": "pages/tab/dashboard/index",
+        "text": "今日看板"
+      },
+      {
+        "iconPath": "static/images/tabbar/chat.png",
+        "selectedIconPath": "static/images/tabbar/chat-active.png",
+        "pagePath": "pages/tab/chat/index",
+        "text": "极律空间"
+      },
+      {
+        "iconPath": "static/images/tabbar/stats.png",
+        "selectedIconPath": "static/images/tabbar/stats-active.png",
+        "pagePath": "pages/tab/stats/index",
+        "text": "成长轨迹"
+      },
+      {
+        "iconPath": "static/images/tabbar/coach.png",
+        "selectedIconPath": "static/images/tabbar/coach-active.png",
+        "pagePath": "pages/tab/coach/index",
+        "text": "教练配置"
+      }
+    ]
+  },
+  "globalStyle": {
+    "navigationBarTextStyle": "white",
+    "navigationBarTitleText": "极律",
+    "navigationBarBackgroundColor": "#1E293B",
+    "backgroundColor": "#F8FAFC"
+  }
+}

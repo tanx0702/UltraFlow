@@ -1,0 +1,54 @@
+@import 'uview-plus/theme.scss';
+
+/* 颜色变量 - 极律 UltraFlow 主题 */
+
+/* 行为相关颜色 */
+$u-primary: #0EA5E9; // 极光青/科技蓝
+$u-primary-dark: #0284C7;
+$u-success: #10B981; // 薄荷翠绿
+$u-warning: #F59E0B;
+$u-error: #EF4444;
+
+/* 文字基本颜色 */
+$u-main-color: #1E293B; // 深邃蓝灰
+$u-content-color: #475569;
+$u-tips-color: #94A3B8;
+$u-light-color: #CBD5E1;
+$u-disabled-color: #E2E8F0;
+
+/* 背景颜色 */
+$u-bg-color: #F8FAFC; // 呼吸柔灰
+
+/* 边框颜色 */
+$u-border-color: #E2E8F0;
+
+/* 尺寸变量 */
+
+/* 文字尺寸 */
+$u-font-sm: 24rpx;
+$u-font-base: 28rpx;
+$u-font-lg: 32rpx;
+
+/* 图片尺寸 */
+$u-img-sm: 40rpx;
+$u-img-base: 52rpx;
+$u-img-lg: 80rpx;
+
+/* Border Radius */
+$u-border-radius-sm: 4rpx;
+$u-border-radius-base: 6rpx;
+$u-border-radius-lg: 12rpx;
+$u-border-radius-circle: 50%;
+
+/* 水平间距 */
+$u-spacing-row-sm: 10rpx;
+$u-spacing-row-base: 20rpx;
+$u-spacing-row-lg: 30rpx;
+
+/* 垂直间距 */
+$u-spacing-col-sm: 8rpx;
+$u-spacing-col-base: 16rpx;
+$u-spacing-col-lg: 24px;
+
+/* 透明度 */
+$u-opacity-disabled: 0.3;

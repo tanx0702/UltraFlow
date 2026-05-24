@@ -1,0 +1,11 @@
+# Claude Code
+.claude/
+.mcp.json
+
+# Temporary files
+fix-*.md
+recognize_image.py
+
+# OS
+.DS_Store
+Thumbs.db
