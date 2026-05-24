@@ -141,8 +141,10 @@
 
 <script setup lang="ts">
 import useHabitStore from '@/store/modules/habit';
+import { useAuth } from '@/composables';
 import { computed, ref } from 'vue';
 
+useAuth();
 const habitStore = useHabitStore();
 
 const now = new Date();

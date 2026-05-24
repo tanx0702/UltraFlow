@@ -159,8 +159,10 @@
 import type { AIMessage } from '@/store/modules/ai/types';
 import useAIStore from '@/store/modules/ai';
 import useHabitStore from '@/store/modules/habit';
+import { useAuth } from '@/composables';
 import { computed, nextTick, ref, watch } from 'vue';
 
+useAuth();
 const aiStore = useAIStore();
 const habitStore = useHabitStore();
 

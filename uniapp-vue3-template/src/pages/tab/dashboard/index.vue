@@ -143,8 +143,10 @@
 <script setup lang="ts">
 import useHabitStore from '@/store/modules/habit';
 import useCheckInStore from '@/store/modules/checkin';
+import { useAuth } from '@/composables';
 import { computed, onMounted, ref } from 'vue';
 
+useAuth();
 const habitStore = useHabitStore();
 const checkInStore = useCheckInStore();
 

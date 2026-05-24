@@ -133,7 +133,9 @@ import useUserStore from '@/store/modules/user';
 import useHabitStore from '@/store/modules/habit';
 import { UserApi } from '@/api';
 import { LOGIN_PATH } from '@/router';
+import { useAuth } from '@/composables';
 
+useAuth();
 const userStore = useUserStore();
 const habitStore = useHabitStore();
 
