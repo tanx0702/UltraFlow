@@ -9,8 +9,9 @@
     <!-- Profile Section -->
     <view class="mx-32rpx mt-24rpx rounded-20rpx bg-white p-24rpx shadow-sm">
       <view class="flex items-center">
-        <view class="h-80rpx w-80rpx flex items-center justify-center rounded-full" style="background-color: rgba(14,165,233,0.1)">
-          <text class="text-40rpx" style="color: #0EA5E9">&#128100;</text>
+        <view class="h-80rpx w-80rpx flex items-center justify-center overflow-hidden rounded-full" style="background-color: rgba(14,165,233,0.1)">
+          <image v-if="userStore.avatar" :src="userStore.avatar" mode="aspectFill" class="h-full w-full" />
+          <text v-else class="text-40rpx" style="color: #0EA5E9">&#128100;</text>
         </view>
         <view class="ml-20rpx flex-1">
           <view class="text-30rpx font-bold text-[#1E293B]">{{ userStore.user_name || '未登录' }}</view>

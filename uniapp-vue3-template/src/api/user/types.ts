@@ -41,3 +41,8 @@ export interface UpdateCoachPersonaReq {
 export interface UpdateReminderReq {
   reminderEnabled: boolean;
 }
+
+export interface UpdateProfileReq {
+  nickname?: string;
+  avatar?: string;
+}

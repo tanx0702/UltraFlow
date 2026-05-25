@@ -10,6 +10,7 @@ from app.models.user import (
     UserObject,
     UserProfile,
     UpdateCoachPersonaRequest,
+    UpdateProfileRequest,
     UpdateReminderRequest,
 )
 from app.core.database import users_collection
@@ -119,6 +120,23 @@ async def get_profile(current_user: dict = Depends(get_current_user)):
         createdAt=user.get("createdAt", datetime.utcnow()).isoformat() if isinstance(user.get("createdAt"), datetime) else str(user.get("createdAt", "")),
         updatedAt=user.get("updatedAt", datetime.utcnow()).isoformat() if isinstance(user.get("updatedAt"), datetime) else str(user.get("updatedAt", "")),
     )
+
+
+@router.put("/user/profile")
+async def update_profile(request: UpdateProfileRequest, current_user: dict = Depends(get_current_user)):
+    update_data = {"updatedAt": datetime.utcnow()}
+    if request.nickname is not None:
+        update_data["nickname"] = request.nickname
+    if request.avatar is not None:
+        update_data["avatar"] = request.avatar
+
+    result = await users_collection.update_one(
+        {"_id": ObjectId(current_user["_id"])},
+        {"$set": update_data},
+    )
+    if result.modified_count == 0:
+        raise HTTPException(status_code=404, detail="用户不存在")
+    return {"success": True}
 
 
 @router.put("/user/coach-persona")

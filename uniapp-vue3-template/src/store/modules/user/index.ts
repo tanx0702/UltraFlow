@@ -82,6 +82,11 @@ const useUserStore = defineStore('user', {
         });
       });
     },
+    async updateProfile(data: { nickname?: string; avatar?: string }) {
+      await UserApi.updateProfile(data);
+      if (data.nickname) this.user_name = data.nickname;
+      if (data.avatar) this.avatar = data.avatar;
+    },
     setPersona(persona: CoachPersona) {
       this.coachPersona = persona;
     },

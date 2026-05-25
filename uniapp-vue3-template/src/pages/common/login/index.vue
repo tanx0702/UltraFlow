@@ -42,43 +42,77 @@
         <text class="text-24rpx text-[#0EA5E9]">《隐私政策》</text>
       </view>
     </view>
+
+    <!-- 新用户授权弹窗 -->
+    <ProfileAuthPopup
+      :visible="showProfileAuth"
+      @confirm="onProfileConfirm"
+      @skip="onProfileSkip"
+    />
   </view>
 </template>
 
 <script setup lang="ts">
 import useUserStore from '@/store/modules/user';
+import ProfileAuthPopup from '@/components/ProfileAuthPopup/ProfileAuthPopup.vue';
 import { HOME_PATH } from '@/router';
 import { ref } from 'vue';
 
 const userStore = useUserStore();
 const agreePolicy = ref(false);
+const showProfileAuth = ref(false);
 
 // 💡 统一成一个状态控制，当未勾选时，按钮和单选框同步触发动画
 const showWarning = ref(false);
+
+function navigateHome() {
+  uni.reLaunch({ url: HOME_PATH });
+}
 
 function handleWechatLogin() {
   if (!agreePolicy.value) {
     showWarning.value = true;
     setTimeout(() => {
       showWarning.value = false;
-    }, 600); // 动画结束后移除 class，方便下次点击再次触发
-    
+    }, 600);
+
     uni.showToast({ title: '请先同意用户协议', icon: 'none' });
     return;
   }
 
   uni.showLoading({ title: '登录中...' });
 
-  userStore.authLogin('weixin').then(() => {
+  userStore.authLogin('weixin').then((res: any) => {
     uni.hideLoading();
-    uni.showToast({ title: '登录成功', icon: 'success' });
-    setTimeout(() => {
-      uni.reLaunch({ url: HOME_PATH });
-    }, 800);
+    if (res?.isNewUser) {
+      showProfileAuth.value = true;
+    } else {
+      uni.showToast({ title: '登录成功', icon: 'success' });
+      setTimeout(navigateHome, 800);
+    }
   }).catch((err: any) => {
     uni.hideLoading();
     uni.showToast({ title: err?.message || '登录失败', icon: 'none' });
   });
+}
+
+async function onProfileConfirm(data: { nickname: string; avatar: string }) {
+  try {
+    const payload: { nickname?: string; avatar?: string } = {};
+    if (data.nickname) payload.nickname = data.nickname;
+    if (data.avatar) payload.avatar = data.avatar;
+    await userStore.updateProfile(payload);
+    uni.showToast({ title: '登录成功', icon: 'success' });
+  } catch {
+    uni.showToast({ title: '信息保存失败', icon: 'none' });
+  }
+  showProfileAuth.value = false;
+  setTimeout(navigateHome, 800);
+}
+
+function onProfileSkip() {
+  showProfileAuth.value = false;
+  navigateHome();
 }
 </script>
 

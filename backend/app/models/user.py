@@ -41,3 +41,8 @@ class UpdateCoachPersonaRequest(BaseModel):
 
 class UpdateReminderRequest(BaseModel):
     reminderEnabled: bool
+
+
+class UpdateProfileRequest(BaseModel):
+    nickname: Optional[str] = Field(None, max_length=20)
+    avatar: Optional[str] = None
