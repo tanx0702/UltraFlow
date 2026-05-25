@@ -1,12 +1,22 @@
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.api import habit, ai, checkin, user
 from app.core.database import create_indexes
 
+
+@asynccontextmanager
+async def lifespan(app):
+    await create_indexes()
+    yield
+
+
 app = FastAPI(
     title="极律 UltraFlow API",
     description="AI习惯养成应用后端服务",
     version="1.0.0",
+    lifespan=lifespan,
 )
 
 # CORS middleware
@@ -23,11 +33,6 @@ app.include_router(user.router, prefix="/api")
 app.include_router(habit.router, prefix="/api")
 app.include_router(checkin.router, prefix="/api")
 app.include_router(ai.router, prefix="/api")
-
-
-@app.on_event("startup")
-async def startup():
-    await create_indexes()
 
 
 @app.get("/")

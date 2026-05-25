@@ -16,7 +16,18 @@ chat_history_collection = db["chat_history"]
 async def create_indexes():
     """启动时创建索引，加速常用查询。"""
     # users: openid 唯一索引（登录查重）
-    await users_collection.create_index("openid", unique=True)
+    try:
+        await users_collection.create_index("openid", unique=True)
+    except Exception:
+        # 唯一索引创建失败 → 说明有重复 openid，清理后重试
+        pipeline = [
+            {"$group": {"_id": "$openid", "ids": {"$push": "$_id"}, "count": {"$sum": 1}}},
+            {"$match": {"count": {"$gt": 1}}},
+        ]
+        async for doc in users_collection.aggregate(pipeline):
+            ids_to_delete = doc["ids"][1:]
+            await users_collection.delete_many({"_id": {"$in": ids_to_delete}})
+        await users_collection.create_index("openid", unique=True)
 
     # habits: userId + status（查活跃习惯）、userId + createdAt（按创建时间排序）
     await habits_collection.create_index([("userId", 1), ("status", 1)])

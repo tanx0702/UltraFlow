@@ -64,28 +64,33 @@ async def login_by_code(request: LoginByCodeRequest):
     if not openid:
         raise HTTPException(status_code=401, detail="获取openid失败")
 
-    user = await users_collection.find_one({"openid": openid})
-    is_new_user = user is None
-
     now = datetime.utcnow()
-    if not user:
-        user_doc = {
-            "openid": openid,
-            "nickname": f"用户{openid[-6:]}",
-            "avatar": "",
-            "coachPersona": "rational_mentor",
-            "reminderEnabled": False,
-            "createdAt": now,
-            "updatedAt": now,
-        }
-        result = await users_collection.insert_one(user_doc)
-        user_doc["_id"] = result.inserted_id
-        user = user_doc
-    else:
+    # 用 upsert 原子操作：有则更新，无则插入（避免并发登录产生重复记录）
+    result = await users_collection.find_one_and_update(
+        {"openid": openid},
+        {"$set": {"updatedAt": now}},
+        upsert=True,
+        return_document=True,
+    )
+    user = result
+
+    # 判断是否新用户（没有 coachPersona 说明是刚创建的）
+    is_new_user = "coachPersona" not in user
+
+    # 新用户补全默认字段
+    if is_new_user:
         await users_collection.update_one(
             {"_id": user["_id"]},
-            {"$set": {"updatedAt": now}},
+            {"$set": {
+                "nickname": f"用户{openid[-6:]}",
+                "avatar": "",
+                "coachPersona": "rational_mentor",
+                "reminderEnabled": False,
+                "createdAt": now,
+            }},
         )
+        user["nickname"] = f"用户{openid[-6:]}"
+        user["coachPersona"] = "rational_mentor"
 
     token = generate_token(str(user["_id"]))
 
