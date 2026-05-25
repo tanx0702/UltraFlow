@@ -1,12 +1,11 @@
 import uuid
 from datetime import datetime
 
-import jwt
 from bson import ObjectId
-from fastapi import APIRouter, Depends, Header, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 
-from app.core.config import get_settings
-from app.core.database import habits_collection, users_collection
+from app.core.database import habits_collection
+from app.core.deps import get_current_user
 from app.models.ai import ChatRequest, ChatResponse, ConfirmHabitRequest, HabitCardData
 from app.models.habit import Frequency
 from app.services.ai import (
@@ -20,26 +19,6 @@ from app.services.ai import (
 )
 
 router = APIRouter(prefix="/ai", tags=["ai"])
-
-
-async def get_current_user(token: str | None = Header(None, alias="token")) -> dict:
-    if not token:
-        raise HTTPException(status_code=401, detail="未登录")
-    try:
-        settings = get_settings()
-        payload = jwt.decode(token, settings.JWT_SECRET, algorithms=["HS256"])
-        user_id = payload.get("user_id")
-        if not user_id:
-            raise HTTPException(status_code=401, detail="无效token")
-    except jwt.ExpiredSignatureError:
-        raise HTTPException(status_code=401, detail="token已过期")
-    except jwt.InvalidTokenError:
-        raise HTTPException(status_code=401, detail="无效token")
-    user = await users_collection.find_one({"_id": ObjectId(user_id)})
-    if not user:
-        raise HTTPException(status_code=401, detail="用户不存在")
-    user["_id"] = str(user["_id"])
-    return user
 
 
 @router.post("/chat", response_model=ChatResponse)
@@ -84,8 +63,9 @@ async def chat(request: ChatRequest, current_user: dict = Depends(get_current_us
         )
 
     # Persist conversation
-    await save_message(conversation_id, "user", request.message)
-    await save_message(conversation_id, "assistant", reply, extracted)
+    user_id = current_user["_id"]
+    await save_message(conversation_id, "user", request.message, user_id=user_id)
+    await save_message(conversation_id, "assistant", reply, user_id=user_id, extracted_habit=extracted)
 
     return ChatResponse(
         reply=reply,

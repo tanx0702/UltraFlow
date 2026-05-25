@@ -1,7 +1,7 @@
 import httpx
 import jwt
 import time
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from datetime import datetime
 from bson import ObjectId
 from app.models.user import (
@@ -14,6 +14,7 @@ from app.models.user import (
 )
 from app.core.database import users_collection
 from app.core.config import get_settings
+from app.core.deps import get_current_user
 
 router = APIRouter(tags=["user"])
 
@@ -101,11 +102,8 @@ async def login_by_code(request: LoginByCodeRequest):
 
 
 @router.get("/user/profile", response_model=UserProfile)
-async def get_profile(user_id: str):
-    user = await users_collection.find_one({"_id": ObjectId(user_id)})
-    if not user:
-        raise HTTPException(status_code=404, detail="用户不存在")
-
+async def get_profile(current_user: dict = Depends(get_current_user)):
+    user = current_user
     return UserProfile(
         _id=str(user["_id"]),
         openid=user.get("openid", ""),
@@ -119,11 +117,9 @@ async def get_profile(user_id: str):
 
 
 @router.put("/user/coach-persona")
-async def update_coach_persona(request: UpdateCoachPersonaRequest, user_id: str = ""):
-    if not user_id:
-        raise HTTPException(status_code=400, detail="缺少 user_id")
+async def update_coach_persona(request: UpdateCoachPersonaRequest, current_user: dict = Depends(get_current_user)):
     result = await users_collection.update_one(
-        {"_id": ObjectId(user_id)},
+        {"_id": ObjectId(current_user["_id"])},
         {"$set": {"coachPersona": request.coachPersona, "updatedAt": datetime.utcnow()}},
     )
     if result.modified_count == 0:
@@ -132,11 +128,9 @@ async def update_coach_persona(request: UpdateCoachPersonaRequest, user_id: str 
 
 
 @router.put("/user/reminder")
-async def update_reminder(request: UpdateReminderRequest, user_id: str = ""):
-    if not user_id:
-        raise HTTPException(status_code=400, detail="缺少 user_id")
+async def update_reminder(request: UpdateReminderRequest, current_user: dict = Depends(get_current_user)):
     result = await users_collection.update_one(
-        {"_id": ObjectId(user_id)},
+        {"_id": ObjectId(current_user["_id"])},
         {"$set": {"reminderEnabled": request.reminderEnabled, "updatedAt": datetime.utcnow()}},
     )
     if result.modified_count == 0:

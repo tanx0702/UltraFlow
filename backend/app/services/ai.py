@@ -380,11 +380,12 @@ async def save_message(
     conversation_id: str,
     role: str,
     content: str,
+    user_id: str = "",
     extracted_habit: dict | None = None,
 ):
-    # 弃用已在 Python 3.12+ 中废弃的 datetime.utcnow()，改用安全的带时区 UTC 时间
     doc = {
         "conversationId": conversation_id,
+        "userId": user_id,
         "role": role,
         "content": content,
         "extractedHabit": extracted_habit,

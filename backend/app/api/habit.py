@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from datetime import datetime
 from bson import ObjectId
 from app.models.habit import (
@@ -9,6 +9,7 @@ from app.models.habit import (
     Frequency,
 )
 from app.core.database import habits_collection
+from app.core.deps import get_current_user
 
 router = APIRouter(prefix="/habits", tags=["habits"])
 
@@ -34,19 +35,25 @@ def habit_doc_to_response(doc: dict) -> HabitResponse:
 
 
 @router.get("", response_model=list[HabitResponse])
-async def get_habits():
-    cursor = habits_collection.find({"status": {"$ne": HabitStatus.ARCHIVED.value}})
+async def get_habits(current_user: dict = Depends(get_current_user)):
+    cursor = habits_collection.find({
+        "userId": current_user["_id"],
+        "status": {"$ne": HabitStatus.ARCHIVED.value},
+    })
     habits = await cursor.to_list(length=100)
     return [habit_doc_to_response(h) for h in habits]
 
 
 @router.get("/today", response_model=list[HabitResponse])
-async def get_today_habits():
+async def get_today_habits(current_user: dict = Depends(get_current_user)):
     from datetime import date
     today = date.today()
     weekday = today.isoweekday()
 
-    cursor = habits_collection.find({"status": HabitStatus.ACTIVE.value})
+    cursor = habits_collection.find({
+        "userId": current_user["_id"],
+        "status": HabitStatus.ACTIVE.value,
+    })
     habits = await cursor.to_list(length=100)
 
     result = []
@@ -63,10 +70,10 @@ async def get_today_habits():
 
 
 @router.post("", response_model=HabitResponse, status_code=201)
-async def create_habit(request: CreateHabitRequest, user_id: str = ""):
+async def create_habit(request: CreateHabitRequest, current_user: dict = Depends(get_current_user)):
     now = datetime.utcnow()
     habit_doc = {
-        "userId": user_id,
+        "userId": current_user["_id"],
         "name": request.name,
         "target": request.target,
         "frequency": request.frequency.value,

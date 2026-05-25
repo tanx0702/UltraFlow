@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.api import habit, ai, checkin, user
+from app.core.database import create_indexes
 
 app = FastAPI(
     title="极律 UltraFlow API",
@@ -22,6 +23,11 @@ app.include_router(user.router, prefix="/api")
 app.include_router(habit.router, prefix="/api")
 app.include_router(checkin.router, prefix="/api")
 app.include_router(ai.router, prefix="/api")
+
+
+@app.on_event("startup")
+async def startup():
+    await create_indexes()
 
 
 @app.get("/")
