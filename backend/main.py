@@ -1,8 +1,11 @@
 from contextlib import asynccontextmanager
 
+import os
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.api import habit, ai, checkin, user
+from fastapi.staticfiles import StaticFiles
+from app.api import habit, ai, checkin, user, common
 from app.core.database import create_indexes
 
 
@@ -33,6 +36,12 @@ app.include_router(user.router, prefix="/api")
 app.include_router(habit.router, prefix="/api")
 app.include_router(checkin.router, prefix="/api")
 app.include_router(ai.router, prefix="/api")
+app.include_router(common.router, prefix="/api")
+
+# Serve uploaded files
+uploads_dir = os.path.join(os.path.dirname(__file__), "uploads")
+os.makedirs(uploads_dir, exist_ok=True)
+app.mount("/uploads", StaticFiles(directory=uploads_dir), name="uploads")
 
 
 @app.get("/")

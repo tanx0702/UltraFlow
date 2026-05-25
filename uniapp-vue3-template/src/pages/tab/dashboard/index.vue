@@ -144,6 +144,7 @@
 import useHabitStore from '@/store/modules/habit';
 import useCheckInStore from '@/store/modules/checkin';
 import { useAuth } from '@/composables';
+import { isLogin } from '@/utils/auth';
 import { computed, onMounted, ref } from 'vue';
 
 useAuth();
@@ -252,6 +253,8 @@ async function handleComplete(habitId: string) {
 }
 
 onMounted(async () => {
+  if (!isLogin()) return;
+
   try {
     await habitStore.fetchTodayHabits();
   } catch {

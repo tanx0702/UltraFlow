@@ -16,8 +16,8 @@
           @chooseavatar="onChooseAvatar"
         >
           <image
-            v-if="avatarUrl"
-            :src="avatarUrl"
+            v-if="avatarTempPath"
+            :src="avatarTempPath"
             mode="aspectFill"
             class="h-full w-full"
           />
@@ -63,6 +63,7 @@
 
 <script setup lang="ts">
 import { ref, watch } from 'vue';
+import { getToken } from '@/utils/auth';
 
 const props = defineProps<{
   visible: boolean;
@@ -75,31 +76,63 @@ const emit = defineEmits<{
 
 const nickname = ref('');
 const avatarUrl = ref('');
+const avatarTempPath = ref('');
 const saving = ref(false);
 
 watch(() => props.visible, (val) => {
   if (val) {
     nickname.value = '';
     avatarUrl.value = '';
+    avatarTempPath.value = '';
     saving.value = false;
   }
 });
 
 function onChooseAvatar(e: any) {
-  avatarUrl.value = e.detail.avatarUrl || '';
+  avatarTempPath.value = e.detail.avatarUrl || '';
 }
 
 function onNicknameInput(e: any) {
   nickname.value = e.detail.value || '';
 }
 
+async function uploadAvatar(tempPath: string): Promise<string> {
+  const baseURL = import.meta.env.VITE_API_BASE_URL;
+  return new Promise((resolve, reject) => {
+    uni.uploadFile({
+      url: `${baseURL}/api/common/upload`,
+      filePath: tempPath,
+      name: 'file',
+      header: { token: getToken() || '' },
+      success: (res) => {
+        if (res.statusCode === 200) {
+          const data = JSON.parse(res.data);
+          resolve(data.url);
+        } else {
+          reject(new Error('上传失败'));
+        }
+      },
+      fail: () => reject(new Error('上传失败')),
+    });
+  });
+}
+
 async function onConfirm() {
   if (saving.value) return;
   saving.value = true;
-  emit('confirm', {
-    nickname: nickname.value.trim(),
-    avatar: avatarUrl.value,
-  });
+  try {
+    let permanentUrl = '';
+    if (avatarTempPath.value) {
+      permanentUrl = await uploadAvatar(avatarTempPath.value);
+    }
+    emit('confirm', {
+      nickname: nickname.value.trim(),
+      avatar: permanentUrl,
+    });
+  } catch {
+    uni.showToast({ title: '头像上传失败', icon: 'none' });
+    saving.value = false;
+  }
 }
 
 function onSkip() {
