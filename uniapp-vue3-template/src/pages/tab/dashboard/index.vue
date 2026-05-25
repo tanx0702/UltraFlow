@@ -145,7 +145,8 @@ import useHabitStore from '@/store/modules/habit';
 import useCheckInStore from '@/store/modules/checkin';
 import { useAuth } from '@/composables';
 import { isLogin } from '@/utils/auth';
-import { computed, onMounted, ref } from 'vue';
+import { onShow } from '@dcloudio/uni-app';
+import { computed, ref } from 'vue';
 
 useAuth();
 const habitStore = useHabitStore();
@@ -252,7 +253,7 @@ async function handleComplete(habitId: string) {
   setTimeout(() => { progressFlash.value = false; }, 600);
 }
 
-onMounted(async () => {
+onShow(async () => {
   if (!isLogin()) return;
 
   try {

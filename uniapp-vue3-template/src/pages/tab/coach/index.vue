@@ -135,10 +135,19 @@ import useHabitStore from '@/store/modules/habit';
 import { UserApi } from '@/api';
 import { LOGIN_PATH } from '@/router';
 import { useAuth } from '@/composables';
+import { isLogin } from '@/utils/auth';
+import { onShow } from '@dcloudio/uni-app';
 
 useAuth();
 const userStore = useUserStore();
 const habitStore = useHabitStore();
+
+onShow(async () => {
+  if (!isLogin()) return;
+  try {
+    await habitStore.fetchHabits();
+  } catch {}
+});
 
 const personas = [
   { id: 'drill_sergeant' as CoachPersona, name: '硬核教官', icon: '💂', desc: '毒舌严厉，拒绝拖延，一针见血' },

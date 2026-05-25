@@ -142,10 +142,19 @@
 <script setup lang="ts">
 import useHabitStore from '@/store/modules/habit';
 import { useAuth } from '@/composables';
+import { isLogin } from '@/utils/auth';
+import { onShow } from '@dcloudio/uni-app';
 import { computed, ref } from 'vue';
 
 useAuth();
 const habitStore = useHabitStore();
+
+onShow(async () => {
+  if (!isLogin()) return;
+  try {
+    await habitStore.fetchHabits();
+  } catch {}
+});
 
 const now = new Date();
 const currentYear = ref(now.getFullYear());
