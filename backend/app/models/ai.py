@@ -27,3 +27,4 @@ class ConfirmHabitRequest(BaseModel):
     target: str
     frequency: Frequency
     reminderTime: Optional[str] = None
+    force: bool = False

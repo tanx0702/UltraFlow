@@ -50,12 +50,13 @@ const useAIStore = defineStore('ai', {
         this.isTyping = false;
       }
     },
-    async confirmHabit(habit: ExtractedHabit) {
+    async confirmHabit(habit: ExtractedHabit, options?: { force?: boolean }) {
       await AIApi.confirmHabit({
         habitName: habit.habitName,
         target: habit.target,
         frequency: habit.frequency,
         reminderTime: habit.reminderTime,
+        force: options?.force,
       });
 
       const lastAI = [...this.messages].reverse().find(m => m.role === 'assistant' && m.extractedHabit);

@@ -205,6 +205,39 @@
         </view>
       </view>
     </view>
+
+    <!-- Dedup Conflict Popup -->
+    <view v-if="showConflictModal" class="fixed inset-0 z-999 flex items-center justify-center bg-black/50">
+      <view class="mx-48rpx w-full rounded-32rpx bg-white px-40rpx py-40rpx">
+        <view class="text-center">
+          <text class="text-40rpx">⚠️</text>
+          <view class="mt-16rpx text-32rpx font-bold text-[#1E293B]">检测到相似习惯</view>
+        </view>
+        <view class="mt-24rpx rounded-16rpx bg-[#F8FAFC] p-24rpx">
+          <text class="text-26rpx text-[#64748B]">你已经有一个「{{ conflictExisting?.name }}」习惯</text>
+          <view class="mt-8rpx text-28rpx font-medium text-[#1E293B]">当前目标：{{ conflictExisting?.target }}</view>
+        </view>
+        <view class="mt-24rpx text-26rpx text-[#64748B]">你想怎么处理？</view>
+        <!-- Modify existing -->
+        <view
+          class="mt-20rpx flex h-88rpx items-center justify-center rounded-full bg-[#0EA5E9]"
+          @tap="onModifyExisting"
+        >
+          <text class="text-28rpx font-medium text-white">修改为 {{ conflictNewHabit?.target }}</text>
+        </view>
+        <!-- Force create new -->
+        <view
+          class="mt-16rpx flex h-88rpx items-center justify-center rounded-full border-2rpx border-[#0EA5E9]"
+          @tap="onCreateNew"
+        >
+          <text class="text-28rpx font-medium text-[#0EA5E9]">新建一个独立习惯</text>
+        </view>
+        <!-- Cancel -->
+        <view class="mt-16rpx py-12rpx text-center" @tap="onCancelConflict">
+          <text class="text-26rpx text-[#94A3B8]">取消，不做任何操作</text>
+        </view>
+      </view>
+    </view>
   </view>
 </template>
 
@@ -212,6 +245,7 @@
 import type { AIMessage } from '@/store/modules/ai/types';
 import useAIStore from '@/store/modules/ai';
 import useHabitStore from '@/store/modules/habit';
+import { HabitApi } from '@/api';
 import { useAuth } from '@/composables';
 import { computed, nextTick, ref, watch } from 'vue';
 
@@ -256,14 +290,22 @@ async function sendMessage(content: string) {
 }
 
 async function confirmHabit(msg: AIMessage) {
-  if (msg.extractedHabit) {
-    try {
-      await aiStore.confirmHabit(msg.extractedHabit);
-      await habitStore.fetchHabits();
-      uni.showToast({ title: '习惯已创建', icon: 'success' });
-      uni.vibrateShort({ type: 'medium' });
-    } catch {
-      uni.showToast({ title: '创建失败', icon: 'none' });
+  if (!msg.extractedHabit) return;
+  try {
+    await aiStore.confirmHabit(msg.extractedHabit);
+    await habitStore.fetchHabits();
+    const isAdjust = msg.extractedHabit.action === 'ADJUST_HABIT';
+    uni.showToast({ title: isAdjust ? '已调整' : '已开启', icon: 'success' });
+    uni.vibrateShort({ type: 'medium' });
+  } catch (err: any) {
+    const status = err?.response?.status ?? err?.statusCode;
+    const detail = err?.response?.data?.detail ?? err?.data?.detail;
+    if (status === 409 && detail?.existing) {
+      conflictExisting.value = detail.existing;
+      conflictNewHabit.value = msg.extractedHabit;
+      showConflictModal.value = true;
+    } else {
+      uni.showToast({ title: '操作失败', icon: 'none' });
     }
   }
 }
@@ -309,5 +351,51 @@ function confirmEdit() {
     (msg.extractedHabit as any)[editingField.value] = editValue.value || null;
   }
   editingMsgId.value = '';
+}
+
+// Dedup conflict handling
+const showConflictModal = ref(false);
+const conflictExisting = ref<{ _id: string; name: string; target: string; frequency: string; reminderTime?: string } | null>(null);
+const conflictNewHabit = ref<any>(null);
+
+async function onModifyExisting() {
+  if (!conflictExisting.value || !conflictNewHabit.value) return;
+  try {
+    await HabitApi.updateHabit(conflictExisting.value._id, {
+      target: conflictNewHabit.value.target,
+      reminderTime: conflictNewHabit.value.reminderTime,
+    });
+    await habitStore.fetchHabits();
+    // Mark the message as confirmed
+    const lastAI = [...aiStore.messages].reverse().find(m => m.role === 'assistant' && m.extractedHabit);
+    if (lastAI) lastAI.habitConfirmed = true;
+    uni.showToast({ title: `已调整：${conflictExisting.value.name}`, icon: 'success' });
+  } catch {
+    uni.showToast({ title: '调整失败', icon: 'none' });
+  }
+  showConflictModal.value = false;
+  conflictExisting.value = null;
+  conflictNewHabit.value = null;
+}
+
+async function onCreateNew() {
+  if (!conflictNewHabit.value) return;
+  try {
+    await aiStore.confirmHabit(conflictNewHabit.value, { force: true });
+    await habitStore.fetchHabits();
+    uni.showToast({ title: '已开启', icon: 'success' });
+    uni.vibrateShort({ type: 'medium' });
+  } catch {
+    uni.showToast({ title: '创建失败', icon: 'none' });
+  }
+  showConflictModal.value = false;
+  conflictExisting.value = null;
+  conflictNewHabit.value = null;
+}
+
+function onCancelConflict() {
+  showConflictModal.value = false;
+  conflictExisting.value = null;
+  conflictNewHabit.value = null;
 }
 </script>

@@ -21,5 +21,6 @@ export interface ConfirmHabitReq {
   habitName: string;
   target: string;
   frequency: 'daily' | 'weekly';
-  reminderTime: string;
+  reminderTime?: string | null;
+  force?: boolean;
 }

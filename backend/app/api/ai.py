@@ -11,7 +11,7 @@ from app.models.habit import Frequency
 from app.services.ai import (
     assemble_prompt,
     build_user_context,
-    call_mimo,
+    call_llm,
     load_conversation,
     parse_llm_output,
     save_message,
@@ -40,7 +40,7 @@ async def chat(request: ChatRequest, current_user: dict = Depends(get_current_us
     messages = history + [{"role": "user", "content": request.message}]
 
     try:
-        raw = await call_mimo(system_prompt, messages)
+        raw = await call_llm(system_prompt, messages)
         parsed = parse_llm_output(raw)
     except Exception as e:
         print(f"[AI ERROR] {type(e).__name__}: {e}")
@@ -76,9 +76,30 @@ async def chat(request: ChatRequest, current_user: dict = Depends(get_current_us
 
 @router.post("/confirm-habit")
 async def confirm_habit(request: ConfirmHabitRequest, current_user: dict = Depends(get_current_user)):
+    user_id = current_user["_id"]
+
+    # Dedup check: same-name active habit (skip if force=true)
+    if not request.force:
+        existing = await habits_collection.find_one({
+            "userId": user_id,
+            "name": request.habitName,
+            "status": "active",
+        })
+        if existing:
+            raise HTTPException(status_code=409, detail={
+                "message": "已存在同名习惯",
+                "existing": {
+                    "_id": str(existing["_id"]),
+                    "name": existing["name"],
+                    "target": existing["target"],
+                    "frequency": existing["frequency"],
+                    "reminderTime": existing.get("reminderTime"),
+                },
+            })
+
     now = datetime.utcnow()
     habit_doc = {
-        "userId": current_user["_id"],
+        "userId": user_id,
         "name": request.habitName,
         "target": request.target,
         "frequency": request.frequency.value,

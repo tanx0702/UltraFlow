@@ -8,9 +8,15 @@ class Settings(BaseSettings):
     WECHAT_APPID: str = ""
     WECHAT_SECRET: str = ""
     JWT_SECRET: str = "ultraflow-secret-key-change-in-production"
-    MIMO_API_KEY: str = ""
-    MIMO_BASE_URL: str = "https://token-plan-cn.xiaomimimo.com/v1"
-    MIMO_MODEL: str = "mimo-v2.5"
+
+    # LLM API
+    LLM_API_KEY: str = "REDACTED_API_KEY"
+    LLM_BASE_URL: str = "https://api.deepseek.com"
+    LLM_MODEL: str = "deepseek-v4-flash"
+
+    # LLM params
+    LLM_TEMPERATURE: float = 0.7
+    LLM_MAX_TOKENS: int = 1024
 
     class Config:
         env_file = ".env"

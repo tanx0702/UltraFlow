@@ -48,6 +48,29 @@ BASE_SYSTEM_PROMPT = """\
 - **生成 extractedHabit**：当用户明确表达想要养成某个习惯、调整现有习惯、或暂停/恢复习惯时
 - **extractedHabit 为 null**：当用户只是闲聊、倾诉情绪、询问信息、或表达模糊意图时
 
+### 去重规则（CRITICAL）
+
+创建习惯前，必须检查用户上下文中的「已有活跃习惯」列表：
+
+1. 如果用户表达的意图与某个已有习惯属于同一类行为（语义匹配）：
+   - 返回 ADJUST_HABIT，而不是 CREATE_HABIT
+   - 用新信息更新该习惯的对应字段（如时间、目标）
+   - 在 reply 中明确告知用户"已为你调整了 XX 习惯"
+
+2. 语义匹配的判断标准（满足任一即为重复）：
+   - 核心行为相同：如"早起"和"9点起床"都是关于起床时间
+   - 名称高度相似：如"跑步"和"晨跑"、"阅读"和"看书"
+   - 用户明确提到已有习惯的名称：如"把早起改到9点"
+
+3. 以下情况视为不同习惯，应 CREATE_HABIT：
+   - 核心行为不同：如"跑步"和"阅读"
+   - 同一行为但目标维度不同：如"早上跑步"和"晚上散步"（时间段+强度不同）
+
+4. 示例：
+   - 已有习惯："早起 6:30"，用户说"想9点起床" → ADJUST_HABIT（调整时间）
+   - 已有习惯："阅读"，用户说"想看半小时书" → ADJUST_HABIT（同一习惯）
+   - 已有习惯："跑步"，用户说"想学英语" → CREATE_HABIT（不同习惯）
+
 ### action 类型说明
 
 | action | 触发条件 | 示例 |
@@ -231,6 +254,42 @@ FEW_SHOT_EXAMPLES = """\
     "reminderTime": "21:00"
   }
 }
+
+### 示例 6：调整已有习惯（用户提到新时间）
+
+用户：我想9点起床
+
+（假设已有习惯：早起，6:30，每天）
+
+回复：
+{
+  "reply": "好的，已帮你把起床时间调整到 9:00，记得配合固定的就寝时间保证充足睡眠。",
+  "extractedHabit": {
+    "action": "ADJUST_HABIT",
+    "habitName": "早起",
+    "target": "9:00起床",
+    "frequency": "daily",
+    "reminderTime": "09:00"
+  }
+}
+
+### 示例 7：语义重复（用户换了说法）
+
+用户：我想每天看书半小时
+
+（假设已有习惯：阅读，21:00，每天）
+
+回复：
+{
+  "reply": "你已经有一个「阅读」习惯了，我帮你把目标调整为半小时看看？",
+  "extractedHabit": {
+    "action": "ADJUST_HABIT",
+    "habitName": "阅读",
+    "target": "半小时",
+    "frequency": "daily",
+    "reminderTime": "21:00"
+  }
+}
 """
 
 # ─── Valid Values ─────────────────────────────────────────────────────────────
@@ -255,52 +314,49 @@ def assemble_prompt(persona: str, user_context: str) -> str:
 async def build_user_context(user_doc: dict | None) -> str:
     if not user_doc:
         return ""
-    
+
     nickname = user_doc.get("nickname", "用户")
     persona = user_doc.get("coachPersona", "rational_mentor")
-    
-    # 必须绑定当前用户的 ID（或账号唯一标识），否则会统计全库数据导致数据越权
+
     user_id = user_doc.get("userId") or user_doc.get("_id")
-    if user_id:
-        active_count = await habits_collection.count_documents({"userId": user_id, "status": "active"})
-    else:
-        active_count = 0
-        
-    return (
+
+    context = (
         f"- 昵称：{nickname}\n"
         f"- 当前人设：{persona}\n"
-        f"- 活跃习惯数：{active_count}\n"
-        f"- 当前日期：{datetime.now().strftime('%Y-%m-%d')}"
+        f"- 当前日期：{datetime.now().strftime('%Y-%m-%d')}\n"
     )
 
+    if user_id:
+        habits = await habits_collection.find(
+            {"userId": user_id, "status": "active"}
+        ).to_list(50)
 
-# ─── MiMo API Call ────────────────────────────────────────────────────────────
+        if habits:
+            habit_lines = []
+            for h in habits:
+                habit_lines.append(
+                    f"  - {h['name']}（目标：{h['target']}，"
+                    f"{h['frequency']}，提醒 {h.get('reminderTime', '无')}）"
+                )
+            context += "- 已有活跃习惯：\n" + "\n".join(habit_lines) + "\n"
+        else:
+            context += "- 已有活跃习惯：无\n"
+
+    return context
 
 
-async def call_mimo(system_prompt: str, messages: list[dict]) -> str:
+# ─── LLM API Call ──────────────────────────────────────────────────────────────
+
+
+async def call_llm(system_prompt: str, messages: list[dict]) -> str:
     settings = get_settings()
-    client = AsyncOpenAI(
-        api_key=settings.MIMO_API_KEY,
-        base_url=settings.MIMO_BASE_URL,
-    )
-    all_messages = [
-        {"role": "system", "content": system_prompt},
-        *messages,
-    ]
+    client = AsyncOpenAI(api_key=settings.LLM_API_KEY, base_url=settings.LLM_BASE_URL)
     completion = await client.chat.completions.create(
-        model=settings.MIMO_MODEL,
-        messages=all_messages,
+        model=settings.LLM_MODEL,
+        messages=[{"role": "system", "content": system_prompt}, *messages],
         response_format={"type": "json_object"},
-        max_completion_tokens=1024,
-        temperature=0.7,
-        top_p=0.95,
-        stream=False,
-        stop=None,
-        frequency_penalty=0,
-        presence_penalty=0,
-        extra_body={
-            "thinking": {"type": "disabled"},
-        },
+        max_completion_tokens=settings.LLM_MAX_TOKENS,
+        temperature=settings.LLM_TEMPERATURE,
     )
     return completion.choices[0].message.content
 

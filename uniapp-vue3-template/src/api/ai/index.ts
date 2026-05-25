@@ -5,4 +5,4 @@ import { post } from '@/utils/request';
 export const sendMessage = (data: SendMessageReq) => post<SendMessageRes>('/api/ai/chat', { data });
 
 /** 确认创建习惯 */
-export const confirmHabit = (data: ConfirmHabitReq) => post<void>('/api/ai/confirm-habit', { data });
+export const confirmHabit = (data: ConfirmHabitReq) => post<void>('/api/ai/confirm-habit', { data, toast: false });
