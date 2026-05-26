@@ -10,5 +10,8 @@ recognize_image.py
 .DS_Store
 Thumbs.db
 
+# Environment
+.env
+
 # docs
 docs/prd/*.md

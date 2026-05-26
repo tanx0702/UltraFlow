@@ -10,7 +10,7 @@ class Settings(BaseSettings):
     JWT_SECRET: str = "ultraflow-secret-key-change-in-production"
 
     # LLM API
-    LLM_API_KEY: str = "REDACTED_API_KEY"
+    LLM_API_KEY: str = ""
     LLM_BASE_URL: str = "https://api.deepseek.com"
     LLM_MODEL: str = "deepseek-v4-flash"
 
