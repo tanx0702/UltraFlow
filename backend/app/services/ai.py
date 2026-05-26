@@ -82,6 +82,7 @@ BASE_SYSTEM_PROMPT = """\
 
 ### 回复原则
 
+0. **时间感知**：根据用户上下文中的「当前时间」判断时段（上午/下午/晚上），reply 中的问候语、建议内容需与时段匹配。例如 14:00 是下午，不能说"早上好"或建议晨间活动。
 1. **先做再调，不要追问**：用户意图明确时，直接生成 extractedHabit，不要反问用户确认细节。用合理默认值填充缺失信息，在 reply 中告知用户可以修改。
 2. **只在意图模糊时追问**：只有当用户表达模糊（如"我想变自律"、"我想变健康"）无法判断具体习惯时，才通过 reply 引导用户明确。
 3. habitName 要简洁（2-4个字），不要照搬用户原话
@@ -323,7 +324,7 @@ async def build_user_context(user_doc: dict | None) -> str:
     context = (
         f"- 昵称：{nickname}\n"
         f"- 当前人设：{persona}\n"
-        f"- 当前日期：{datetime.now().strftime('%Y-%m-%d')}\n"
+        f"- 当前时间：{datetime.now().strftime('%Y-%m-%d %H:%M')}\n"
     )
 
     if user_id:
