@@ -6,10 +6,7 @@ export interface CommonRes {
   [key: string]: any;
 }
 
-export interface UploadRes {
-  file: string;
-  url: string;
-}
+export type UploadRes = string;
 
 export interface SendCodeReq {
   phone: number;

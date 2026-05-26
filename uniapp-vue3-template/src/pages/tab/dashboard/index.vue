@@ -259,15 +259,12 @@ onShow(async () => {
   try {
     await habitStore.fetchTodayHabits();
   } catch {
-    // 使用 mock 数据，生成 dailyTasks
     habitStore.generateDailyTasks();
   }
 
   try {
     await checkInStore.fetchTodayCheckIns();
-  } catch {
-    // 使用 mock 数据
-  }
+  } catch {}
 
   const checkedIds = checkInStore.todayCheckedHabitIds;
   for (const task of habitStore.dailyTasks) {

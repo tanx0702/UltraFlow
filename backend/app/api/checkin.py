@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from datetime import datetime, date, timedelta, timezone
 from bson import ObjectId
 from app.models.habit import CheckInRequest, CheckInResponse, CheckInDateInfo, WeeklyStats
+from app.models.common import ApiResponse
 from app.core.database import habits_collection, checkins_collection
 from app.core.deps import get_current_user
 
@@ -59,14 +60,13 @@ async def _calc_streak(habit_id: str, user_id: str) -> tuple[int, int]:
     return current_streak, best_streak
 
 
-@router.post("", response_model=CheckInResponse, status_code=201)
+@router.post("", response_model=ApiResponse[CheckInResponse], status_code=201)
 async def check_in(request: CheckInRequest, current_user: dict = Depends(get_current_user)):
     user_id = current_user["_id"]
     now = datetime.now(timezone.utc)
     today_start = datetime(now.year, now.month, now.day, tzinfo=timezone.utc)
     today_end = today_start + timedelta(days=1)
 
-    # 用 ISODate 范围查重（同一习惯同一天）
     existing = await checkins_collection.find_one({
         "habitId": request.habitId,
         "userId": user_id,
@@ -85,25 +85,26 @@ async def check_in(request: CheckInRequest, current_user: dict = Depends(get_cur
     }
     result = await checkins_collection.insert_one(checkin_doc)
 
-    # 更新 totalCheckIns + streak
     current_streak, best_streak = await _calc_streak(request.habitId, user_id)
     await habits_collection.update_one(
         {"_id": ObjectId(request.habitId)},
         {"$inc": {"totalCheckIns": 1}, "$set": {"streak": current_streak, "bestStreak": best_streak, "updatedAt": now}},
     )
 
-    return CheckInResponse(
-        _id=str(result.inserted_id),
-        habitId=request.habitId,
-        userId=user_id,
-        checkInDate=today_start.isoformat(),
-        checkInTime=now.isoformat(),
-        note=request.note,
-        createdAt=now.isoformat(),
-    )
+    return ApiResponse(
+        data=CheckInResponse(
+            _id=str(result.inserted_id),
+            habitId=request.habitId,
+            userId=user_id,
+            checkInDate=today_start.isoformat(),
+            checkInTime=now.isoformat(),
+            note=request.note,
+            createdAt=now.isoformat(),
+        ),
+    ).model_dump()
 
 
-@router.get("/today", response_model=list[CheckInResponse])
+@router.get("/today", response_model=ApiResponse[list[CheckInResponse]])
 async def get_today_checkins(current_user: dict = Depends(get_current_user)):
     user_id = current_user["_id"]
     now = datetime.now(timezone.utc)
@@ -113,7 +114,7 @@ async def get_today_checkins(current_user: dict = Depends(get_current_user)):
     cursor = checkins_collection.find({"userId": user_id, "checkInDate": {"$gte": today_start, "$lt": today_end}})
     docs = await cursor.to_list(length=100)
 
-    return [
+    return ApiResponse(data=[
         CheckInResponse(
             _id=str(d["_id"]),
             habitId=d["habitId"],
@@ -124,10 +125,10 @@ async def get_today_checkins(current_user: dict = Depends(get_current_user)):
             createdAt=d["createdAt"].isoformat() if isinstance(d["createdAt"], datetime) else str(d["createdAt"]),
         )
         for d in docs
-    ]
+    ]).model_dump()
 
 
-@router.get("/dates", response_model=list[CheckInDateInfo])
+@router.get("/dates", response_model=ApiResponse[list[CheckInDateInfo]])
 async def get_checkin_dates(year: int, month: int, current_user: dict = Depends(get_current_user)):
     user_id = current_user["_id"]
     start = datetime(year, month, 1, tzinfo=timezone.utc)
@@ -162,10 +163,10 @@ async def get_checkin_dates(year: int, month: int, current_user: dict = Depends(
         ))
         current += timedelta(days=1)
 
-    return result
+    return ApiResponse(data=result).model_dump()
 
 
-@router.get("/week-stats", response_model=WeeklyStats)
+@router.get("/week-stats", response_model=ApiResponse[WeeklyStats])
 async def get_week_stats(current_user: dict = Depends(get_current_user)):
     user_id = current_user["_id"]
     today = date.today()
@@ -202,10 +203,12 @@ async def get_week_stats(current_user: dict = Depends(get_current_user)):
             missed_days.append(ds)
         current += timedelta(days=1)
 
-    return WeeklyStats(
-        totalCheckIns=total_checkins,
-        totalHabits=active_habits,
-        checkInRate=check_in_rate,
-        bestDay=best_day,
-        missedDays=missed_days,
-    )
+    return ApiResponse(
+        data=WeeklyStats(
+            totalCheckIns=total_checkins,
+            totalHabits=active_habits,
+            checkInRate=check_in_rate,
+            bestDay=best_day,
+            missedDays=missed_days,
+        ),
+    ).model_dump()

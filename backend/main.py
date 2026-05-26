@@ -2,11 +2,13 @@ from contextlib import asynccontextmanager
 
 import os
 
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from app.api import habit, ai, checkin, user, common
 from app.core.database import create_indexes
+from app.core.exception_handler import http_exception_handler, general_exception_handler
+from app.models.common import ApiResponse
 
 
 @asynccontextmanager
@@ -31,6 +33,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Exception handlers
+app.add_exception_handler(HTTPException, http_exception_handler)
+app.add_exception_handler(Exception, general_exception_handler)
+
 # Include routers
 app.include_router(user.router, prefix="/api")
 app.include_router(habit.router, prefix="/api")
@@ -46,12 +52,12 @@ app.mount("/uploads", StaticFiles(directory=uploads_dir), name="uploads")
 
 @app.get("/")
 async def root():
-    return {"message": "极律 UltraFlow API", "version": "1.0.0"}
+    return ApiResponse(msg="极律 UltraFlow API v1.0.0").model_dump()
 
 
 @app.get("/health")
 async def health_check():
-    return {"status": "healthy"}
+    return ApiResponse(msg="healthy").model_dump()
 
 
 if __name__ == "__main__":

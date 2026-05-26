@@ -127,13 +127,7 @@
 
       <!-- No Report -->
       <view v-else class="mt-24rpx">
-        <view
-          class="w-full rounded-full py-24rpx text-center"
-          :style="{ backgroundColor: '#0EA5E9' }"
-          @tap="generateReport"
-        >
-          <text class="text-28rpx font-bold text-white">&#128202; 生成本周报告</text>
-        </view>
+        <text class="text-24rpx text-[#94A3B8]">暂无本周数据</text>
       </view>
     </view>
   </scroll-view>
@@ -141,25 +135,37 @@
 
 <script setup lang="ts">
 import useHabitStore from '@/store/modules/habit';
+import useCheckInStore from '@/store/modules/checkin';
 import { useAuth } from '@/composables';
 import { isLogin } from '@/utils/auth';
 import { onShow } from '@dcloudio/uni-app';
-import { computed, ref } from 'vue';
+import { computed, ref, watch } from 'vue';
 
 useAuth();
 const habitStore = useHabitStore();
-
-onShow(async () => {
-  if (!isLogin()) return;
-  try {
-    await habitStore.fetchHabits();
-  } catch {}
-});
+const checkinStore = useCheckInStore();
 
 const now = new Date();
 const currentYear = ref(now.getFullYear());
 const currentMonth = ref(now.getMonth() + 1);
 const selectedDay = ref<{ date: string; count: number; total: number } | null>(null);
+
+async function loadData() {
+  if (!isLogin()) return;
+  try {
+    await Promise.all([
+      habitStore.fetchHabits(),
+      checkinStore.fetchCheckInDates(currentYear.value, currentMonth.value),
+      checkinStore.fetchWeekStats(),
+    ]);
+  } catch {}
+}
+
+onShow(loadData);
+
+watch([currentYear, currentMonth], () => {
+  checkinStore.fetchCheckInDates(currentYear.value, currentMonth.value);
+});
 
 const weekdays = ['一', '二', '三', '四', '五', '六', '日'];
 
@@ -172,34 +178,11 @@ const isCurrentMonth = computed(() => {
   return currentYear.value === now.getFullYear() && currentMonth.value === now.getMonth() + 1;
 });
 
-// TODO: 接入真实数据后删除
-const mockCheckInDates = [
-  { date: '2026-05-01', count: 3, total: 5 },
-  { date: '2026-05-02', count: 5, total: 5 },
-  { date: '2026-05-03', count: 2, total: 5 },
-  { date: '2026-05-04', count: 4, total: 5 },
-  { date: '2026-05-05', count: 5, total: 5 },
-  { date: '2026-05-06', count: 1, total: 5 },
-  { date: '2026-05-07', count: 0, total: 5 },
-  { date: '2026-05-08', count: 5, total: 5 },
-  { date: '2026-05-09', count: 3, total: 5 },
-  { date: '2026-05-10', count: 4, total: 5 },
-  { date: '2026-05-11', count: 5, total: 5 },
-  { date: '2026-05-12', count: 0, total: 5 },
-  { date: '2026-05-13', count: 2, total: 5 },
-  { date: '2026-05-14', count: 5, total: 5 },
-  { date: '2026-05-15', count: 3, total: 5 },
-  { date: '2026-05-16', count: 4, total: 5 },
-];
-
 const heatmapDataMap = computed(() => {
-  const monthPrefix = `${currentYear.value}-${String(currentMonth.value).padStart(2, '0')}`;
-  return mockCheckInDates
-    .filter(d => d.date.startsWith(monthPrefix))
-    .reduce<Record<string, { count: number; total: number }>>((map, d) => {
-      map[d.date] = { count: d.count, total: d.total };
-      return map;
-    }, {});
+  return checkinStore.checkInDates.reduce<Record<string, { count: number; total: number }>>((map, d) => {
+    map[d.date] = { count: d.count, total: d.total };
+    return map;
+  }, {});
 });
 
 function getHeatmapColor(count: number, total: number): string {
@@ -299,23 +282,23 @@ const easyBreakRanking = computed(() => {
 });
 
 // Weekly Report
-// TODO: 接入真实数据后删除
-const mockWeeklyReport = {
-  dateRange: '5.10 - 5.16',
-  content: '本周总结：你完成了 85% 的打卡目标，表现优秀！冥想习惯连续打卡 7 天，保持得很好。\n\n建议：跑步习惯连续断卡 2 次，建议调整到早上执行，利用精力最充沛的时段完成。',
-  stats: {
-    totalCheckIns: 25,
-    totalHabits: 5,
-    checkInRate: 0.85,
-    bestDay: '周三',
-    missedDays: ['2026-05-07', '2026-05-12'],
-  },
-};
+const weekDateRange = computed(() => {
+  const now = new Date();
+  const weekStart = new Date(now);
+  weekStart.setDate(now.getDate() - now.getDay() + 1);
+  const weekEnd = new Date(weekStart);
+  weekEnd.setDate(weekStart.getDate() + 6);
+  const fmt = (d: Date) => `${d.getMonth() + 1}.${d.getDate()}`;
+  return `${fmt(weekStart)} - ${fmt(weekEnd)}`;
+});
 
-const weeklyReport = ref(mockWeeklyReport);
-
-function generateReport() {
-  // TODO: 调用 useAIStore.fetchWeeklyReport()
-  weeklyReport.value = mockWeeklyReport;
-}
+const weeklyReport = computed(() => {
+  if (!checkinStore.weeklyStats) return null;
+  const s = checkinStore.weeklyStats;
+  return {
+    dateRange: weekDateRange.value,
+    content: `本周打卡率 ${Math.round(s.checkInRate * 100)}%，共 ${s.totalCheckIns} 次打卡`,
+    stats: s,
+  };
+});
 </script>

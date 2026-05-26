@@ -7,6 +7,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from app.core.database import habits_collection
 from app.core.deps import get_current_user
 from app.models.ai import ChatRequest, ChatResponse, ConfirmHabitRequest, HabitCardData
+from app.models.common import ApiResponse
 from app.models.habit import Frequency
 from app.services.ai import (
     assemble_prompt,
@@ -21,7 +22,7 @@ from app.services.ai import (
 router = APIRouter(prefix="/ai", tags=["ai"])
 
 
-@router.post("/chat", response_model=ChatResponse)
+@router.post("/chat", response_model=ApiResponse[ChatResponse])
 async def chat(request: ChatRequest, current_user: dict = Depends(get_current_user)):
     conversation_id = request.conversationId or str(uuid.uuid4())
 
@@ -44,11 +45,13 @@ async def chat(request: ChatRequest, current_user: dict = Depends(get_current_us
         parsed = parse_llm_output(raw)
     except Exception as e:
         print(f"[AI ERROR] {type(e).__name__}: {e}")
-        return ChatResponse(
-            reply="抱歉，我正在思考中，请稍后再试～",
-            conversationId=conversation_id,
-            extractedHabit=None,
-        )
+        return ApiResponse(
+            data=ChatResponse(
+                reply="抱歉，我正在思考中，请稍后再试～",
+                conversationId=conversation_id,
+                extractedHabit=None,
+            ),
+        ).model_dump()
 
     reply = parsed.get("reply", "")
     extracted = validate_extracted_habit(parsed.get("extractedHabit"))
@@ -67,14 +70,16 @@ async def chat(request: ChatRequest, current_user: dict = Depends(get_current_us
     await save_message(conversation_id, "user", request.message, user_id=user_id)
     await save_message(conversation_id, "assistant", reply, user_id=user_id, extracted_habit=extracted)
 
-    return ChatResponse(
-        reply=reply,
-        conversationId=conversation_id,
-        extractedHabit=extracted_habit,
-    )
+    return ApiResponse(
+        data=ChatResponse(
+            reply=reply,
+            conversationId=conversation_id,
+            extractedHabit=extracted_habit,
+        ),
+    ).model_dump()
 
 
-@router.post("/confirm-habit")
+@router.post("/confirm-habit", response_model=ApiResponse[dict])
 async def confirm_habit(request: ConfirmHabitRequest, current_user: dict = Depends(get_current_user)):
     user_id = current_user["_id"]
 
@@ -113,7 +118,7 @@ async def confirm_habit(request: ConfirmHabitRequest, current_user: dict = Depen
     }
     result = await habits_collection.insert_one(habit_doc)
 
-    return {
+    return ApiResponse(data={
         "_id": str(result.inserted_id),
         "name": request.habitName,
         "target": request.target,
@@ -125,4 +130,4 @@ async def confirm_habit(request: ConfirmHabitRequest, current_user: dict = Depen
         "totalCheckIns": 0,
         "createdAt": now.isoformat(),
         "updatedAt": now.isoformat(),
-    }
+    }).model_dump()

@@ -13,6 +13,7 @@ from app.models.user import (
     UpdateProfileRequest,
     UpdateReminderRequest,
 )
+from app.models.common import ApiResponse
 from app.core.database import users_collection
 from app.core.config import get_settings
 from app.core.deps import get_current_user
@@ -42,7 +43,7 @@ def format_user(doc: dict) -> UserObject:
     )
 
 
-@router.post("/auth/login", response_model=LoginByCodeResponse)
+@router.post("/auth/login", response_model=ApiResponse[LoginByCodeResponse])
 async def login_by_code(request: LoginByCodeRequest):
     settings = get_settings()
 
@@ -100,29 +101,33 @@ async def login_by_code(request: LoginByCodeRequest):
         {"$set": {"token": token, "lastLoginAt": now}},
     )
 
-    return LoginByCodeResponse(
-        token=token,
-        user=format_user(user),
-        isNewUser=is_new_user,
-    )
+    return ApiResponse(
+        data=LoginByCodeResponse(
+            token=token,
+            user=format_user(user),
+            isNewUser=is_new_user,
+        ),
+    ).model_dump()
 
 
-@router.get("/user/profile", response_model=UserProfile)
+@router.get("/user/profile", response_model=ApiResponse[UserProfile])
 async def get_profile(current_user: dict = Depends(get_current_user)):
     user = current_user
-    return UserProfile(
-        _id=str(user["_id"]),
-        openid=user.get("openid", ""),
-        nickname=user.get("nickname", ""),
-        avatar=user.get("avatar", ""),
-        coachPersona=user.get("coachPersona", "rational_mentor"),
-        reminderEnabled=user.get("reminderEnabled", False),
-        createdAt=user.get("createdAt", datetime.utcnow()).isoformat() if isinstance(user.get("createdAt"), datetime) else str(user.get("createdAt", "")),
-        updatedAt=user.get("updatedAt", datetime.utcnow()).isoformat() if isinstance(user.get("updatedAt"), datetime) else str(user.get("updatedAt", "")),
-    )
+    return ApiResponse(
+        data=UserProfile(
+            _id=str(user["_id"]),
+            openid=user.get("openid", ""),
+            nickname=user.get("nickname", ""),
+            avatar=user.get("avatar", ""),
+            coachPersona=user.get("coachPersona", "rational_mentor"),
+            reminderEnabled=user.get("reminderEnabled", False),
+            createdAt=user.get("createdAt", datetime.utcnow()).isoformat() if isinstance(user.get("createdAt"), datetime) else str(user.get("createdAt", "")),
+            updatedAt=user.get("updatedAt", datetime.utcnow()).isoformat() if isinstance(user.get("updatedAt"), datetime) else str(user.get("updatedAt", "")),
+        ),
+    ).model_dump()
 
 
-@router.put("/user/profile")
+@router.put("/user/profile", response_model=ApiResponse[None])
 async def update_profile(request: UpdateProfileRequest, current_user: dict = Depends(get_current_user)):
     update_data = {"updatedAt": datetime.utcnow()}
     if request.nickname is not None:
@@ -136,10 +141,10 @@ async def update_profile(request: UpdateProfileRequest, current_user: dict = Dep
     )
     if result.modified_count == 0:
         raise HTTPException(status_code=404, detail="用户不存在")
-    return {"success": True}
+    return ApiResponse(msg="更新成功").model_dump()
 
 
-@router.put("/user/coach-persona")
+@router.put("/user/coach-persona", response_model=ApiResponse[str])
 async def update_coach_persona(request: UpdateCoachPersonaRequest, current_user: dict = Depends(get_current_user)):
     result = await users_collection.update_one(
         {"_id": ObjectId(current_user["_id"])},
@@ -147,10 +152,10 @@ async def update_coach_persona(request: UpdateCoachPersonaRequest, current_user:
     )
     if result.modified_count == 0:
         raise HTTPException(status_code=404, detail="用户不存在")
-    return {"success": True, "coachPersona": request.coachPersona}
+    return ApiResponse(data=request.coachPersona).model_dump()
 
 
-@router.put("/user/reminder")
+@router.put("/user/reminder", response_model=ApiResponse[None])
 async def update_reminder(request: UpdateReminderRequest, current_user: dict = Depends(get_current_user)):
     result = await users_collection.update_one(
         {"_id": ObjectId(current_user["_id"])},
@@ -158,9 +163,9 @@ async def update_reminder(request: UpdateReminderRequest, current_user: dict = D
     )
     if result.modified_count == 0:
         raise HTTPException(status_code=404, detail="用户不存在")
-    return {"success": True}
+    return ApiResponse().model_dump()
 
 
-@router.post("/user/logout")
+@router.post("/user/logout", response_model=ApiResponse[None])
 async def logout():
-    return {"message": "已退出登录"}
+    return ApiResponse(msg="已退出登录").model_dump()

@@ -2,10 +2,9 @@ import type { AxiosRequestConfig } from 'axios';
 
 // 返回res.data的interface
 export interface IResponse<T = any> {
-  code: number | string;
-  result: T;
-  message: string;
-  status: string | number;
+  code: number;
+  data: T | null;
+  msg: string;
 }
 
 export interface IRequestConfig extends AxiosRequestConfig {

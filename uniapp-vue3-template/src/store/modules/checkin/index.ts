@@ -1,24 +1,10 @@
-import type { CheckInDateInfo, CheckInRecord, CheckInState, WeeklyStats } from './types';
+import type { CheckInState } from './types';
 import { CheckInApi } from '@/api';
 import { defineStore } from 'pinia';
 
-// TODO: 接入真实数据后删除
-const today = new Date();
-const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
-const mockCheckIns: CheckInRecord[] = [
-  {
-    _id: 'mock_checkin_1',
-    habitId: 'mock_3',
-    userId: 'dev_user',
-    checkInDate: todayStr,
-    checkInTime: `${todayStr}T06:35:00Z`,
-    createdAt: `${todayStr}T06:35:00Z`,
-  },
-];
-
 const useCheckInStore = defineStore('checkin', {
   state: (): CheckInState => ({
-    todayCheckIns: mockCheckIns,
+    todayCheckIns: [],
     checkInDates: [],
     weeklyStats: null,
     loading: false,

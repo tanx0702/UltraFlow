@@ -8,6 +8,7 @@ from app.models.habit import (
     HabitStatus,
     Frequency,
 )
+from app.models.common import ApiResponse
 from app.core.database import habits_collection
 from app.core.deps import get_current_user
 
@@ -34,17 +35,17 @@ def habit_doc_to_response(doc: dict) -> HabitResponse:
     )
 
 
-@router.get("", response_model=list[HabitResponse])
+@router.get("", response_model=ApiResponse[list[HabitResponse]])
 async def get_habits(current_user: dict = Depends(get_current_user)):
     cursor = habits_collection.find({
         "userId": current_user["_id"],
         "status": {"$ne": HabitStatus.ARCHIVED.value},
     })
     habits = await cursor.to_list(length=100)
-    return [habit_doc_to_response(h) for h in habits]
+    return ApiResponse(data=[habit_doc_to_response(h) for h in habits]).model_dump()
 
 
-@router.get("/today", response_model=list[HabitResponse])
+@router.get("/today", response_model=ApiResponse[list[HabitResponse]])
 async def get_today_habits(current_user: dict = Depends(get_current_user)):
     from datetime import date
     today = date.today()
@@ -66,10 +67,10 @@ async def get_today_habits(current_user: dict = Depends(get_current_user)):
             if not specific_days or weekday in specific_days:
                 result.append(h)
 
-    return [habit_doc_to_response(h) for h in result]
+    return ApiResponse(data=[habit_doc_to_response(h) for h in result]).model_dump()
 
 
-@router.post("", response_model=HabitResponse, status_code=201)
+@router.post("", response_model=ApiResponse[HabitResponse], status_code=201)
 async def create_habit(request: CreateHabitRequest, current_user: dict = Depends(get_current_user)):
     now = datetime.utcnow()
     habit_doc = {
@@ -88,10 +89,10 @@ async def create_habit(request: CreateHabitRequest, current_user: dict = Depends
     }
     result = await habits_collection.insert_one(habit_doc)
     habit_doc["_id"] = result.inserted_id
-    return habit_doc_to_response(habit_doc)
+    return ApiResponse(data=habit_doc_to_response(habit_doc)).model_dump()
 
 
-@router.put("/{habit_id}", response_model=HabitResponse)
+@router.put("/{habit_id}", response_model=ApiResponse[HabitResponse])
 async def update_habit(habit_id: str, request: UpdateHabitRequest):
     update_data = {"updatedAt": datetime.utcnow()}
     if request.name is not None:
@@ -109,10 +110,10 @@ async def update_habit(habit_id: str, request: UpdateHabitRequest):
         raise HTTPException(status_code=404, detail="习惯不存在")
 
     habit = await habits_collection.find_one({"_id": ObjectId(habit_id)})
-    return habit_doc_to_response(habit)
+    return ApiResponse(data=habit_doc_to_response(habit)).model_dump()
 
 
-@router.put("/{habit_id}/pause")
+@router.put("/{habit_id}/pause", response_model=ApiResponse[str])
 async def pause_habit(habit_id: str):
     result = await habits_collection.update_one(
         {"_id": ObjectId(habit_id)},
@@ -120,10 +121,10 @@ async def pause_habit(habit_id: str):
     )
     if result.modified_count == 0:
         raise HTTPException(status_code=404, detail="习惯不存在")
-    return {"success": True, "status": "paused"}
+    return ApiResponse(data="paused").model_dump()
 
 
-@router.put("/{habit_id}/resume")
+@router.put("/{habit_id}/resume", response_model=ApiResponse[str])
 async def resume_habit(habit_id: str):
     result = await habits_collection.update_one(
         {"_id": ObjectId(habit_id)},
@@ -131,10 +132,10 @@ async def resume_habit(habit_id: str):
     )
     if result.modified_count == 0:
         raise HTTPException(status_code=404, detail="习惯不存在")
-    return {"success": True, "status": "active"}
+    return ApiResponse(data="active").model_dump()
 
 
-@router.delete("/{habit_id}")
+@router.delete("/{habit_id}", response_model=ApiResponse[None])
 async def delete_habit(habit_id: str):
     result = await habits_collection.update_one(
         {"_id": ObjectId(habit_id)},
@@ -142,4 +143,4 @@ async def delete_habit(habit_id: str):
     )
     if result.modified_count == 0:
         raise HTTPException(status_code=404, detail="习惯不存在")
-    return {"success": True}
+    return ApiResponse().model_dump()

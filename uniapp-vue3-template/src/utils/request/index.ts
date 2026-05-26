@@ -28,8 +28,8 @@ export function request<T = any>(config?: IRequestConfig): Promise<T> {
   return new Promise((resolve, reject) => {
     instance.request(config!).then((res: AxiosResponse<IResponse<T>>) => {
       console.log('[ res ] >', res);
-      const { result } = res.data;
-      resolve(result !== undefined ? result as T : res.data as T);
+      const { data } = res.data;
+      resolve(data != null ? data as T : res.data as T);
     }).catch((err: any) => {
       console.error('[ err ] >', err);
       reject(err);

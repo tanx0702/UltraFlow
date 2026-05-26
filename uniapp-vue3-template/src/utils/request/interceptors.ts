@@ -123,13 +123,13 @@ function responseInterceptors(http: AxiosInstance) {
     }
 
     // 请求成功则返回结果（兼容后端直接返回数据无code字段的情况）
-    if (data.code === 200 || data.code === undefined) {
+    if (data.code === 0 || data.code === undefined) {
       return response || {};
     }
 
     // 如果没有显式定义custom的toast参数为false的话，默认对报错进行toast弹出提示
     if (config?.toast !== false) {
-      uni.$u.toast(data.message);
+      uni.$u.toast(data.msg);
     }
 
     // 请求失败则抛出错误

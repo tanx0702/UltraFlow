@@ -299,9 +299,10 @@ async function confirmHabit(msg: AIMessage) {
     uni.vibrateShort({ type: 'medium' });
   } catch (err: any) {
     const status = err?.response?.status ?? err?.statusCode;
-    const detail = err?.response?.data?.detail ?? err?.data?.detail;
-    if (status === 409 && detail?.existing) {
-      conflictExisting.value = detail.existing;
+    const body = err?.response?.data ?? err?.data;
+    const existing = body?.data?.existing;
+    if (status === 409 && existing) {
+      conflictExisting.value = existing;
       conflictNewHabit.value = msg.extractedHabit;
       showConflictModal.value = true;
     } else {
