@@ -73,7 +73,7 @@ app.include_router(xxx.router, prefix="/api")
 
 ### 3.1 Prompt 修改
 
-修改 `backend/app/services/ai.py` 时：
+修改 `backend/app/prompts/` 下的 Prompt 文件时：
 
 - [ ] 每次回复必须是合法 JSON（`response_format: json_object` 已保证）
 - [ ] `extractedHabit` 的 action 必须在 `VALID_ACTIONS` 内
@@ -154,8 +154,9 @@ backend/
 ├── app/
 │   ├── api/               # 路由层 — 只做参数校验和响应组装
 │   ├── services/          # 业务逻辑层 — AI 对话、打卡计算
+│   ├── prompts/           # LLM Prompt 内容 — base / personas / safety / examples
 │   ├── models/            # Pydantic 模型 — Request/Response 定义
-│   └── core/              # 基础设施 — 配置、数据库、依赖注入
+│   └── core/              # 基础设施 — 配置、数据库、依赖注入、异常处理
 ```
 
 规则：
