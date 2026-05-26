@@ -9,3 +9,6 @@ recognize_image.py
 # OS
 .DS_Store
 Thumbs.db
+
+# docs
+docs/prd/*.md
