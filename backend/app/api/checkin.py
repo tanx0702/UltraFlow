@@ -219,6 +219,47 @@ async def get_checkin_dates(year: int, month: int, current_user: dict = Depends(
     return ApiResponse(data=result).model_dump()
 
 
+@router.get("/habit/{habit_id}", response_model=ApiResponse[list[CheckInDateInfo]])
+async def get_habit_checkin_dates(
+    habit_id: str,
+    year: int,
+    month: int,
+    current_user: dict = Depends(get_current_user),
+):
+    user_id = current_user["_id"]
+    start = datetime(year, month, 1, tzinfo=timezone.utc)
+    if month == 12:
+        end = datetime(year + 1, 1, 1, tzinfo=timezone.utc)
+    else:
+        end = datetime(year, month + 1, 1, tzinfo=timezone.utc)
+
+    docs = await checkins_collection.find({
+        "userId": user_id,
+        "habitId": habit_id,
+        "checkInDate": {"$gte": start, "$lt": end},
+    }).to_list(length=31)
+
+    checked_dates = set()
+    for d in docs:
+        dt = d["checkInDate"]
+        ds = dt.date().isoformat() if isinstance(dt, datetime) else str(dt)
+        checked_dates.add(ds)
+
+    result = []
+    current = date(year, month, 1)
+    month_end = date(year, month + 1, 1) if month < 12 else date(year + 1, 1, 1)
+    while current < month_end:
+        ds = current.isoformat()
+        result.append(CheckInDateInfo(
+            date=ds,
+            count=1 if ds in checked_dates else 0,
+            total=1,
+        ))
+        current += timedelta(days=1)
+
+    return ApiResponse(data=result).model_dump()
+
+
 @router.get("/week-stats", response_model=ApiResponse[WeeklyStats])
 async def get_week_stats(current_user: dict = Depends(get_current_user)):
     user_id = current_user["_id"]

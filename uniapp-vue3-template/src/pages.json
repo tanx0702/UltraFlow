@@ -56,6 +56,14 @@
           }
         },
         {
+          "path": "habit-detail/index",
+          "needLogin": true,
+          "style": {
+            "navigationBarTitleText": "习惯详情",
+            "navigationStyle": "custom"
+          }
+        },
+        {
           "path": "404/index",
           "style": {
             "navigationBarTitleText": "404",

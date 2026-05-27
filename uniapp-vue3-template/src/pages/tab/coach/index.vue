@@ -33,6 +33,7 @@
           v-for="habit in habitStore.habits"
           :key="habit._id"
           class="flex items-center justify-between border-b border-[#F1F5F9] py-20rpx"
+          @tap="goToHabitDetail(habit._id)"
           @longpress="handleDeleteHabit(habit._id, habit.name)"
         >
           <view>
@@ -53,7 +54,7 @@
               >{{ habit.status === 'active' ? '活跃' : '暂停' }}</text>
             </view>
             <!-- Action Button -->
-            <view class="ml-16rpx" @tap="habit.status === 'active' ? handlePauseHabit(habit._id, habit.name) : handleResumeHabit(habit._id)">
+            <view class="ml-16rpx" @tap.stop="habit.status === 'active' ? handlePauseHabit(habit._id, habit.name) : handleResumeHabit(habit._id)">
               <text
                 class="text-22rpx"
                 :style="{ color: habit.status === 'active' ? '#94A3B8' : '#0EA5E9' }"
@@ -224,6 +225,10 @@ function handleDeleteHabit(habitId: string, habitName: string) {
       }
     },
   });
+}
+
+function goToHabitDetail(habitId: string) {
+  uni.navigateTo({ url: `/pages/common/habit-detail/index?habitId=${habitId}` });
 }
 
 function goAbout() {

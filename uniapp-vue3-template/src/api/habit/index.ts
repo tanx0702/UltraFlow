@@ -4,6 +4,9 @@ import { del, get, post, put } from '@/utils/request';
 /** 获取所有习惯 */
 export const getHabits = () => get<HabitRes[]>('/api/habits');
 
+/** 获取单个习惯 */
+export const getHabitById = (habitId: string) => get<HabitRes>(`/api/habits/${habitId}`);
+
 /** 获取今日习惯 */
 export const getTodayHabits = () => get<HabitRes[]>('/api/habits/today');
 

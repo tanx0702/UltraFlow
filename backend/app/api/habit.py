@@ -97,6 +97,17 @@ async def get_today_habits(current_user: dict = Depends(get_current_user)):
     return ApiResponse(data=[habit_doc_to_response(h) for h in result]).model_dump()
 
 
+@router.get("/{habit_id}", response_model=ApiResponse[HabitResponse])
+async def get_habit(habit_id: str, current_user: dict = Depends(get_current_user)):
+    habit = await habits_collection.find_one({
+        "_id": ObjectId(habit_id),
+        "userId": current_user["_id"],
+    })
+    if not habit:
+        raise HTTPException(status_code=404, detail="习惯不存在")
+    return ApiResponse(data=habit_doc_to_response(habit)).model_dump()
+
+
 @router.post("", response_model=ApiResponse[HabitResponse], status_code=201)
 async def create_habit(request: CreateHabitRequest, current_user: dict = Depends(get_current_user)):
     now = datetime.utcnow()

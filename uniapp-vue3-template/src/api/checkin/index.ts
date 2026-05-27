@@ -10,5 +10,9 @@ export const getTodayCheckIns = () => get<CheckInRes[]>('/api/checkins/today');
 /** 获取某月打卡日期 */
 export const getCheckInDates = (year: number, month: number) => get<CheckInDateInfo[]>('/api/checkins/dates', { params: { year, month } });
 
+/** 获取单个习惯某月打卡日期 */
+export const getHabitCheckInDates = (habitId: string, year: number, month: number) =>
+  get<CheckInDateInfo[]>(`/api/checkins/habit/${habitId}`, { params: { year, month } });
+
 /** 获取本周统计 */
 export const getWeekStats = () => get<WeeklyStats>('/api/checkins/week-stats');
