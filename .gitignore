@@ -15,3 +15,6 @@ Thumbs.db
 
 # docs
 docs/prd/*.md
+
+# test
+tests/

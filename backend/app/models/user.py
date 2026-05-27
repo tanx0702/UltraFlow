@@ -8,7 +8,7 @@ class LoginByCodeRequest(BaseModel):
 
 
 class UserObject(BaseModel):
-    _id: str
+    id: str = Field(alias="_id")
     openid: str
     nickname: str
     avatar: str
@@ -25,7 +25,7 @@ class LoginByCodeResponse(BaseModel):
 
 
 class UserProfile(BaseModel):
-    _id: str
+    id: str = Field(alias="_id")
     openid: str
     nickname: str
     avatar: str

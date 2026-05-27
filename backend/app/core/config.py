@@ -11,8 +11,8 @@ class Settings(BaseSettings):
 
     # LLM API
     LLM_API_KEY: str = ""
-    LLM_BASE_URL: str = "https://api.deepseek.com"
-    LLM_MODEL: str = "deepseek-v4-flash"
+    LLM_BASE_URL: str = "https://token-plan-cn.xiaomimimo.com/v1"
+    LLM_MODEL: str = "mimo-v2.5-pro"
 
     # LLM params
     LLM_TEMPERATURE: float = 0.7

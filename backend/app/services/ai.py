@@ -110,6 +110,9 @@ def validate_extracted_habit(habit: dict | None) -> dict | None:
     if habit is None:
         return None
 
+    if not isinstance(habit, dict):
+        return None
+
     if habit.get("action") not in VALID_ACTIONS:
         return None
 

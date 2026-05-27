@@ -31,7 +31,7 @@ class UpdateHabitRequest(BaseModel):
 
 
 class HabitResponse(BaseModel):
-    _id: str
+    id: str = Field(alias="_id")
     userId: str
     name: str
     target: str
@@ -52,7 +52,7 @@ class CheckInRequest(BaseModel):
 
 
 class CheckInResponse(BaseModel):
-    _id: str
+    id: str = Field(alias="_id")
     habitId: str
     userId: str
     checkInDate: str

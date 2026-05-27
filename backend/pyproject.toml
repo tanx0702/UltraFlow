@@ -1,0 +1,8 @@
+[tool.pytest.ini_options]
+markers = [
+    "llm: tests that call the real LLM API (requires LLM_API_KEY in .env)",
+    "integration: API integration tests (requires MongoDB and LLM_API_KEY)",
+]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "module"
+asyncio_default_test_loop_scope = "module"
