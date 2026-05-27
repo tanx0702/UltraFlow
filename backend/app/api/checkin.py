@@ -9,14 +9,18 @@ from app.core.deps import get_current_user
 router = APIRouter(prefix="/checkins", tags=["checkins"])
 
 
-async def _calc_streak(habit_id: str, user_id: str) -> tuple[int, int]:
-    """计算当前连续打卡天数和历史最佳连续打卡天数。
+async def _calc_streak(habit_id: str, user_id: str, habit_doc: dict) -> tuple[int, int]:
+    """计算当前连续和最佳连续。
 
-    逻辑：从今天往前逐日检查是否有打卡记录，直到断开为止。
+    - daily / weekly_days / challenge：按天连续
+    - weekly_count：按周连续（每周达标 >= weeklyCount 次）
     返回 (current_streak, best_streak)。
     """
+    freq = habit_doc.get("frequency", "daily")
+    if freq == "weekly":
+        freq = "weekly_days"
+
     today = date.today()
-    # 查最近 365 天的打卡记录，按日期降序
     one_year_ago = today - timedelta(days=365)
     cursor = checkins_collection.find(
         {"habitId": habit_id, "userId": user_id, "checkInDate": {"$gte": datetime(one_year_ago.year, one_year_ago.month, one_year_ago.day)}},
@@ -24,6 +28,50 @@ async def _calc_streak(habit_id: str, user_id: str) -> tuple[int, int]:
     ).sort("checkInDate", -1)
     docs = await cursor.to_list(length=365)
 
+    # ── weekly_count：按周连续 ──
+    if freq == "weekly_count":
+        weekly_target = habit_doc.get("weeklyCount", 3)
+        # 按 ISO 周分组计数
+        week_counts: dict[str, int] = {}
+        for d in docs:
+            dt = d["checkInDate"]
+            if isinstance(dt, datetime):
+                dt_date = dt.date()
+            else:
+                dt_date = date.fromisoformat(str(dt))
+            iso = dt_date.isocalendar()
+            week_key = f"{iso[0]}-W{iso[1]:02d}"
+            week_counts[week_key] = week_counts.get(week_key, 0) + 1
+
+        # 生成过去 52 周的列表（从本周往前）
+        current_iso = today.isocalendar()
+        weeks = []
+        for i in range(52):
+            d = today - timedelta(days=i * 7)
+            iso = d.isocalendar()
+            wk = f"{iso[0]}-W{iso[1]:02d}"
+            if wk not in [w[0] for w in weeks]:
+                weeks.append((wk, week_counts.get(wk, 0)))
+
+        current_streak = 0
+        for wk, count in weeks:
+            if count >= weekly_target:
+                current_streak += 1
+            else:
+                break
+
+        best_streak = 0
+        run = 0
+        for wk, count in weeks:
+            if count >= weekly_target:
+                run += 1
+                best_streak = max(best_streak, run)
+            else:
+                run = 0
+        best_streak = max(best_streak, current_streak)
+        return current_streak, best_streak
+
+    # ── daily / weekly_days / challenge：按天连续 ──
     checked_dates = set()
     for d in docs:
         dt = d["checkInDate"]
@@ -32,31 +80,35 @@ async def _calc_streak(habit_id: str, user_id: str) -> tuple[int, int]:
         else:
             checked_dates.add(str(dt))
 
-    # 从今天往前数连续天数
     current_streak = 0
     day = today
     while day.isoformat() in checked_dates:
         current_streak += 1
         day -= timedelta(days=1)
 
-    # 从所有打卡记录中算历史最佳连续
+    # challenge 模式：按天连续，上限 targetDays
+    if freq == "challenge":
+        target = habit_doc.get("targetDays", 21)
+        current_streak = min(current_streak, target)
+
     if not checked_dates:
         return current_streak, 0
 
     sorted_dates = sorted(checked_dates)
     best_streak = 1
-    streak = 1
+    run = 1
     for i in range(1, len(sorted_dates)):
         prev = date.fromisoformat(sorted_dates[i - 1])
         curr = date.fromisoformat(sorted_dates[i])
         if (curr - prev).days == 1:
-            streak += 1
-            best_streak = max(best_streak, streak)
+            run += 1
+            best_streak = max(best_streak, run)
         else:
-            streak = 1
+            run = 1
 
-    # 当前连续可能就是最佳
     best_streak = max(best_streak, current_streak)
+    if freq == "challenge":
+        best_streak = min(best_streak, target)
     return current_streak, best_streak
 
 
@@ -85,7 +137,8 @@ async def check_in(request: CheckInRequest, current_user: dict = Depends(get_cur
     }
     result = await checkins_collection.insert_one(checkin_doc)
 
-    current_streak, best_streak = await _calc_streak(request.habitId, user_id)
+    habit_doc = await habits_collection.find_one({"_id": ObjectId(request.habitId)})
+    current_streak, best_streak = await _calc_streak(request.habitId, user_id, habit_doc or {})
     await habits_collection.update_one(
         {"_id": ObjectId(request.habitId)},
         {"$inc": {"totalCheckIns": 1}, "$set": {"streak": current_streak, "bestStreak": best_streak, "updatedAt": now}},

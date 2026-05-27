@@ -34,11 +34,13 @@ const useHabitStore = defineStore('habit', {
       this.generateDailyTasks();
     },
     generateDailyTasks() {
-      const today = new Date().toISOString().split('T')[0];
       this.dailyTasks = this.activeHabits.map(habit => ({
         habitId: habit._id,
         name: habit.name,
         target: habit.target,
+        frequency: habit.frequency,
+        weeklyCount: habit.weeklyCount,
+        targetDays: habit.targetDays,
         reminderTime: habit.reminderTime,
         completed: false,
       }));

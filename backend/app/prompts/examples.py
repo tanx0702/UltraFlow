@@ -106,4 +106,55 @@ FEW_SHOT_EXAMPLES = """\
     "reminderTime": "21:00"
   }
 }
+
+### 示例 8：每周 N 次（灵活频率）
+
+用户：我想每周跑步3次
+
+回复：
+{
+  "reply": "每周3次跑步，压力不大又能保持状态，哪天跑都可以，自由安排～",
+  "extractedHabit": {
+    "action": "CREATE_HABIT",
+    "habitName": "跑步",
+    "target": "3公里",
+    "frequency": "weekly_count",
+    "weeklyCount": 3,
+    "reminderTime": "21:00"
+  }
+}
+
+### 示例 9：坚持 N 天挑战
+
+用户：我要挑战21天早起
+
+回复：
+{
+  "reply": "21天挑战开始！坚持打卡21天就能养成早起习惯，加油～",
+  "extractedHabit": {
+    "action": "CREATE_HABIT",
+    "habitName": "早起",
+    "target": "7:00起床",
+    "frequency": "challenge",
+    "targetDays": 21,
+    "reminderTime": "07:00"
+  }
+}
+
+### 示例 10：每周固定几天
+
+用户：每周一和周四去健身房
+
+回复：
+{
+  "reply": "周一和周四健身，节奏很好！帮你设好了～",
+  "extractedHabit": {
+    "action": "CREATE_HABIT",
+    "habitName": "健身",
+    "target": "1小时",
+    "frequency": "weekly_days",
+    "specificDays": [1, 4],
+    "reminderTime": "19:00"
+  }
+}
 """

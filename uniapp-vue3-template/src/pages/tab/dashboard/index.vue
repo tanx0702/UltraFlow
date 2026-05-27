@@ -84,6 +84,17 @@
                   <view class="ml-20rpx">
                     <view class="text-30rpx font-bold text-[#1E293B]">{{ task.name }}</view>
                     <view class="mt-4rpx text-24rpx text-[#94A3B8]">{{ task.target }} · {{ task.reminderTime }}</view>
+                    <!-- Frequency badge -->
+                    <view v-if="task.frequency !== 'daily'" class="mt-4rpx">
+                      <text class="text-20rpx text-[#0EA5E9]">{{ freqBadge(task) }}</text>
+                    </view>
+                    <!-- Challenge progress bar -->
+                    <view v-if="task.frequency === 'challenge' && task.targetDays" class="mt-8rpx">
+                      <view class="h-6rpx overflow-hidden rounded-full bg-[#E2E8F0]">
+                        <view class="h-full rounded-full bg-[#10B981]" :style="{ width: challengeProgress(task) + '%' }" />
+                      </view>
+                      <text class="mt-4rpx text-20rpx text-[#94A3B8]">{{ challengeProgress(task) }}%</text>
+                    </view>
                   </view>
                 </view>
                 <text class="text-24rpx text-[#CBD5E1]">&#9654;</text>
@@ -141,6 +152,7 @@
 </template>
 
 <script setup lang="ts">
+import type { DailyTask } from '@/store/modules/habit/types';
 import useHabitStore from '@/store/modules/habit';
 import useCheckInStore from '@/store/modules/checkin';
 import { useAuth } from '@/composables';
@@ -151,6 +163,22 @@ import { computed, ref } from 'vue';
 useAuth();
 const habitStore = useHabitStore();
 const checkInStore = useCheckInStore();
+
+function freqBadge(task: DailyTask): string {
+  switch (task.frequency) {
+    case 'weekly_days': return '每周固定';
+    case 'weekly_count': return `每周${task.weeklyCount || '?'}次`;
+    case 'challenge': return `${task.targetDays || '?'}天挑战`;
+    default: return '';
+  }
+}
+
+function challengeProgress(task: DailyTask): number {
+  if (!task.targetDays) return 0;
+  const habit = habitStore.habits.find(h => h._id === task.habitId);
+  const streak = habit?.streak ?? 0;
+  return Math.min(Math.round((streak / task.targetDays) * 100), 100);
+}
 
 const todayDate = computed(() => {
   const date = new Date();

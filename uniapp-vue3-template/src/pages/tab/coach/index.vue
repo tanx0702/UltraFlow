@@ -35,7 +35,10 @@
           class="flex items-center justify-between border-b border-[#F1F5F9] py-20rpx"
           @longpress="handleDeleteHabit(habit._id, habit.name)"
         >
-          <text class="text-26rpx text-[#334155]">{{ habit.name }}</text>
+          <view>
+            <text class="text-26rpx text-[#334155]">{{ habit.name }}</text>
+            <text class="ml-12rpx text-22rpx text-[#94A3B8]">{{ habitFreqLabel(habit) }}</text>
+          </view>
           <view class="flex items-center">
             <!-- Status Tag -->
             <view
@@ -130,6 +133,7 @@
 
 <script setup lang="ts">
 import type { CoachPersona } from '@/store/modules/user/types';
+import type { Habit } from '@/store/modules/habit/types';
 import useUserStore from '@/store/modules/user';
 import useHabitStore from '@/store/modules/habit';
 import { UserApi } from '@/api';
@@ -141,6 +145,22 @@ import { onShow } from '@dcloudio/uni-app';
 useAuth();
 const userStore = useUserStore();
 const habitStore = useHabitStore();
+
+function habitFreqLabel(habit: Habit): string {
+  switch (habit.frequency) {
+    case 'daily': return '每天';
+    case 'weekly_days': {
+      if (habit.specificDays && habit.specificDays.length > 0) {
+        const labels: Record<number, string> = { 1: '一', 2: '二', 3: '三', 4: '四', 5: '五', 6: '六', 7: '日' };
+        return '周' + habit.specificDays.map(d => labels[d]).join('、');
+      }
+      return '每周';
+    }
+    case 'weekly_count': return `每周${habit.weeklyCount || '?'}次`;
+    case 'challenge': return `坚持${habit.targetDays || '?'}天`;
+    default: return '';
+  }
+}
 
 onShow(async () => {
   if (!isLogin()) return;

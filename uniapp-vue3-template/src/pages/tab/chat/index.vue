@@ -80,9 +80,9 @@
                     <text class="text-28rpx text-white">{{ msg.extractedHabit.target }}</text>
                     <text class="ml-8rpx text-20rpx text-white/50">✎</text>
                   </view>
-                  <view class="flex items-center" @tap="startFrequencyEdit(msg.id, msg.extractedHabit.frequency)">
+                  <view class="flex items-center" @tap="startFrequencyEdit(msg.id, msg.extractedHabit.frequency, msg.extractedHabit.specificDays, msg.extractedHabit.weeklyCount, msg.extractedHabit.targetDays)">
                     <text class="w-100rpx text-24rpx text-white/70">频次</text>
-                    <text class="text-28rpx text-white">{{ msg.extractedHabit.frequency === 'daily' ? '每天' : '每周' }}</text>
+                    <text class="text-28rpx text-white">{{ frequencyLabel(msg.extractedHabit.frequency, msg.extractedHabit.specificDays, msg.extractedHabit.weeklyCount, msg.extractedHabit.targetDays) }}</text>
                     <text class="ml-8rpx text-20rpx text-white/50">✎</text>
                   </view>
                   <view class="flex items-center" @tap="startTimeEdit(msg.id, msg.extractedHabit.reminderTime)">
@@ -173,20 +173,68 @@
           focus
         />
         <!-- Frequency picker -->
-        <view v-if="editingField === 'frequency'" class="flex gap-16rpx">
+        <view v-if="editingField === 'frequency'" class="space-y-12rpx">
           <view
-            class="flex-1 rounded-16rpx py-24rpx text-center"
+            class="rounded-16rpx py-24rpx text-center"
             :style="{ backgroundColor: editValue === 'daily' ? '#0EA5E9' : '#F1F5F9', border: editValue === 'daily' ? '2rpx solid #0EA5E9' : '2rpx solid #E2E8F0' }"
-            @tap="editValue = 'daily'"
+            @tap="onFrequencySelect('daily')"
           >
             <text class="text-28rpx font-medium" :style="{ color: editValue === 'daily' ? 'white' : '#64748B' }">每天</text>
           </view>
           <view
-            class="flex-1 rounded-16rpx py-24rpx text-center"
-            :style="{ backgroundColor: editValue === 'weekly' ? '#0EA5E9' : '#F1F5F9', border: editValue === 'weekly' ? '2rpx solid #0EA5E9' : '2rpx solid #E2E8F0' }"
-            @tap="editValue = 'weekly'"
+            class="rounded-16rpx py-24rpx text-center"
+            :style="{ backgroundColor: editValue === 'weekly_days' ? '#0EA5E9' : '#F1F5F9', border: editValue === 'weekly_days' ? '2rpx solid #0EA5E9' : '2rpx solid #E2E8F0' }"
+            @tap="onFrequencySelect('weekly_days')"
           >
-            <text class="text-28rpx font-medium" :style="{ color: editValue === 'weekly' ? 'white' : '#64748B' }">每周</text>
+            <text class="text-28rpx font-medium" :style="{ color: editValue === 'weekly_days' ? 'white' : '#64748B' }">每周固定几天</text>
+          </view>
+          <!-- Day of week picker (only for weekly_days) -->
+          <view v-if="editValue === 'weekly_days'" class="flex flex-wrap gap-12rpx pl-16rpx">
+            <view
+              v-for="(day, idx) in weekDayOptions"
+              :key="idx"
+              class="rounded-12rpx px-20rpx py-14rpx"
+              :style="{ backgroundColor: editSpecificDays.includes(day.value) ? '#0EA5E9' : '#F1F5F9', border: editSpecificDays.includes(day.value) ? '2rpx solid #0EA5E9' : '2rpx solid #E2E8F0' }"
+              @tap="toggleDaySelect(day.value)"
+            >
+              <text class="text-26rpx" :style="{ color: editSpecificDays.includes(day.value) ? 'white' : '#64748B' }">{{ day.label }}</text>
+            </view>
+          </view>
+          <view
+            class="rounded-16rpx py-24rpx text-center"
+            :style="{ backgroundColor: editValue === 'weekly_count' ? '#0EA5E9' : '#F1F5F9', border: editValue === 'weekly_count' ? '2rpx solid #0EA5E9' : '2rpx solid #E2E8F0' }"
+            @tap="onFrequencySelect('weekly_count')"
+          >
+            <text class="text-28rpx font-medium" :style="{ color: editValue === 'weekly_count' ? 'white' : '#64748B' }">每周完成 N 次</text>
+          </view>
+          <!-- Weekly count stepper (only for weekly_count) -->
+          <view v-if="editValue === 'weekly_count'" class="flex items-center justify-center gap-32rpx pl-16rpx py-12rpx">
+            <view class="h-64rpx w-64rpx flex items-center justify-center rounded-full bg-[#F1F5F9]" @tap="editWeeklyCount = Math.max(1, editWeeklyCount - 1)">
+              <text class="text-36rpx text-[#64748B]">−</text>
+            </view>
+            <text class="text-40rpx font-bold text-[#1E293B]">{{ editWeeklyCount }}</text>
+            <view class="h-64rpx w-64rpx flex items-center justify-center rounded-full bg-[#F1F5F9]" @tap="editWeeklyCount = Math.min(7, editWeeklyCount + 1)">
+              <text class="text-36rpx text-[#64748B]">+</text>
+            </view>
+            <text class="text-24rpx text-[#94A3B8]">次/周</text>
+          </view>
+          <view
+            class="rounded-16rpx py-24rpx text-center"
+            :style="{ backgroundColor: editValue === 'challenge' ? '#0EA5E9' : '#F1F5F9', border: editValue === 'challenge' ? '2rpx solid #0EA5E9' : '2rpx solid #E2E8F0' }"
+            @tap="onFrequencySelect('challenge')"
+          >
+            <text class="text-28rpx font-medium" :style="{ color: editValue === 'challenge' ? 'white' : '#64748B' }">坚持 N 天挑战</text>
+          </view>
+          <!-- Target days input (only for challenge) -->
+          <view v-if="editValue === 'challenge'" class="flex items-center justify-center gap-32rpx pl-16rpx py-12rpx">
+            <view class="h-64rpx w-64rpx flex items-center justify-center rounded-full bg-[#F1F5F9]" @tap="editTargetDays = Math.max(1, editTargetDays - 1)">
+              <text class="text-36rpx text-[#64748B]">−</text>
+            </view>
+            <text class="text-40rpx font-bold text-[#1E293B]">{{ editTargetDays }}</text>
+            <view class="h-64rpx w-64rpx flex items-center justify-center rounded-full bg-[#F1F5F9]" @tap="editTargetDays = Math.min(365, editTargetDays + 1)">
+              <text class="text-36rpx text-[#64748B]">+</text>
+            </view>
+            <text class="text-24rpx text-[#94A3B8]">天</text>
           </view>
         </view>
         <!-- Time picker -->
@@ -319,6 +367,36 @@ function dismissHabit() {
 const editingMsgId = ref('');
 const editingField = ref<'habitName' | 'target' | 'frequency' | 'reminderTime'>('habitName');
 const editValue = ref('');
+const editSpecificDays = ref<number[]>([]);
+const editWeeklyCount = ref(3);
+const editTargetDays = ref(21);
+
+const weekDayOptions = [
+  { label: '周一', value: 1 },
+  { label: '周二', value: 2 },
+  { label: '周三', value: 3 },
+  { label: '周四', value: 4 },
+  { label: '周五', value: 5 },
+  { label: '周六', value: 6 },
+  { label: '周日', value: 7 },
+];
+
+const DAY_LABELS: Record<number, string> = { 1: '周一', 2: '周二', 3: '周三', 4: '周四', 5: '周五', 6: '周六', 7: '周日' };
+
+function frequencyLabel(freq: string, specificDays?: number[] | null, weeklyCount?: number | null, targetDays?: number | null): string {
+  switch (freq) {
+    case 'daily': return '每天';
+    case 'weekly_days': {
+      if (specificDays && specificDays.length > 0) {
+        return '每周（' + specificDays.map(d => DAY_LABELS[d]).join('、') + '）';
+      }
+      return '每周固定';
+    }
+    case 'weekly_count': return `每周${weeklyCount || '?'}次`;
+    case 'challenge': return `坚持${targetDays || '?'}天`;
+    default: return freq;
+  }
+}
 
 function startEdit(msgId: string, field: 'habitName' | 'target', currentValue: string) {
   editingMsgId.value = msgId;
@@ -326,16 +404,32 @@ function startEdit(msgId: string, field: 'habitName' | 'target', currentValue: s
   editValue.value = currentValue;
 }
 
-function startFrequencyEdit(msgId: string, currentValue: string) {
+function startFrequencyEdit(msgId: string, currentValue: string, specificDays: number[] | null | undefined, weeklyCount?: number | null, targetDays?: number | null) {
   editingMsgId.value = msgId;
   editingField.value = 'frequency';
-  editValue.value = currentValue;
+  editValue.value = currentValue === 'weekly' ? 'weekly_days' : currentValue;
+  editSpecificDays.value = specificDays && specificDays.length > 0 ? [...specificDays] : [];
+  editWeeklyCount.value = weeklyCount || 3;
+  editTargetDays.value = targetDays || 21;
 }
 
 function startTimeEdit(msgId: string, currentValue: string | null) {
   editingMsgId.value = msgId;
   editingField.value = 'reminderTime';
   editValue.value = currentValue || '';
+}
+
+function onFrequencySelect(val: string) {
+  editValue.value = val;
+}
+
+function toggleDaySelect(day: number) {
+  const idx = editSpecificDays.value.indexOf(day);
+  if (idx >= 0) {
+    editSpecificDays.value.splice(idx, 1);
+  } else {
+    editSpecificDays.value.push(day);
+  }
 }
 
 function onTimePickerChange(e: any) {
@@ -349,7 +443,28 @@ function cancelEdit() {
 function confirmEdit() {
   const msg = aiStore.messages.find(m => m.id === editingMsgId.value);
   if (msg?.extractedHabit) {
-    (msg.extractedHabit as any)[editingField.value] = editValue.value || null;
+    if (editingField.value === 'frequency') {
+      (msg.extractedHabit as any).frequency = editValue.value;
+      if (editValue.value === 'weekly_days') {
+        (msg.extractedHabit as any).specificDays = editSpecificDays.value.length > 0 ? [...editSpecificDays.value] : null;
+        (msg.extractedHabit as any).weeklyCount = null;
+        (msg.extractedHabit as any).targetDays = null;
+      } else if (editValue.value === 'weekly_count') {
+        (msg.extractedHabit as any).specificDays = null;
+        (msg.extractedHabit as any).weeklyCount = editWeeklyCount.value;
+        (msg.extractedHabit as any).targetDays = null;
+      } else if (editValue.value === 'challenge') {
+        (msg.extractedHabit as any).specificDays = null;
+        (msg.extractedHabit as any).weeklyCount = null;
+        (msg.extractedHabit as any).targetDays = editTargetDays.value;
+      } else {
+        (msg.extractedHabit as any).specificDays = null;
+        (msg.extractedHabit as any).weeklyCount = null;
+        (msg.extractedHabit as any).targetDays = null;
+      }
+    } else {
+      (msg.extractedHabit as any)[editingField.value] = editValue.value || null;
+    }
   }
   editingMsgId.value = '';
 }

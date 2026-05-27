@@ -55,6 +55,9 @@ const useAIStore = defineStore('ai', {
         habitName: habit.habitName,
         target: habit.target,
         frequency: habit.frequency,
+        specificDays: habit.specificDays,
+        weeklyCount: habit.weeklyCount,
+        targetDays: habit.targetDays,
         reminderTime: habit.reminderTime,
         force: options?.force,
       });

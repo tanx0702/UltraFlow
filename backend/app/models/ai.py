@@ -8,6 +8,9 @@ class HabitCardData(BaseModel):
     habitName: str
     target: str
     frequency: Frequency
+    specificDays: Optional[list[int]] = None
+    weeklyCount: Optional[int] = None
+    targetDays: Optional[int] = None
     reminderTime: Optional[str] = None
 
 
@@ -26,5 +29,8 @@ class ConfirmHabitRequest(BaseModel):
     habitName: str
     target: str
     frequency: Frequency
+    specificDays: Optional[list[int]] = None
+    weeklyCount: Optional[int] = None
+    targetDays: Optional[int] = None
     reminderTime: Optional[str] = None
     force: bool = False

@@ -1,14 +1,22 @@
+export type FrequencyType = 'daily' | 'weekly' | 'weekly_days' | 'weekly_count' | 'challenge';
+
 export interface CreateHabitReq {
   name: string;
   target: string;
-  frequency: 'daily' | 'weekly';
+  frequency: FrequencyType;
   specificDays?: number[];
+  weeklyCount?: number;
+  targetDays?: number;
   reminderTime: string;
 }
 
 export interface UpdateHabitReq {
   name?: string;
   target?: string;
+  frequency?: FrequencyType;
+  specificDays?: number[];
+  weeklyCount?: number;
+  targetDays?: number;
   reminderTime?: string;
 }
 
@@ -17,8 +25,10 @@ export interface HabitRes {
   userId: string;
   name: string;
   target: string;
-  frequency: 'daily' | 'weekly';
+  frequency: FrequencyType;
   specificDays?: number[];
+  weeklyCount?: number;
+  targetDays?: number;
   reminderTime: string;
   status: 'active' | 'paused' | 'completed' | 'archived';
   streak: number;

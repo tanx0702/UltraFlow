@@ -11,7 +11,7 @@ from app.prompts import BASE_SYSTEM_PROMPT, FEW_SHOT_EXAMPLES, PERSONA_VARIANTS,
 # ─── Valid Values ─────────────────────────────────────────────────────────────
 
 VALID_ACTIONS = {"CREATE_HABIT", "ADJUST_HABIT", "PAUSE_HABIT", None}
-VALID_FREQUENCIES = {"daily", "weekly"}
+VALID_FREQUENCIES = {"daily", "weekly", "weekly_days", "weekly_count", "challenge"}
 
 MAX_HISTORY_MESSAGES = 20
 
@@ -25,6 +25,24 @@ def assemble_prompt(persona: str, user_context: str) -> str:
     if user_context:
         parts.append(f"## 用户上下文\n\n{user_context}")
     return "\n\n".join(parts)
+
+
+def _format_frequency(freq: str, specific_days=None, weekly_count=None, target_days=None) -> str:
+    if freq == "daily":
+        return "每天"
+    if freq in ("weekly_days", "weekly"):
+        days = specific_days or []
+        if days:
+            day_names = {1: "周一", 2: "周二", 3: "周三", 4: "周四", 5: "周五", 6: "周六", 7: "周日"}
+            return "每周" + "、".join(day_names.get(d, str(d)) for d in sorted(days))
+        return "每周"
+    if freq == "weekly_count":
+        n = weekly_count or 3
+        return f"每周{n}次"
+    if freq == "challenge":
+        n = target_days or 21
+        return f"坚持{n}天挑战"
+    return freq
 
 
 async def build_user_context(user_doc: dict | None) -> str:
@@ -50,9 +68,11 @@ async def build_user_context(user_doc: dict | None) -> str:
         if habits:
             habit_lines = []
             for h in habits:
+                freq = h.get("frequency", "daily")
+                freq_text = _format_frequency(freq, h.get("specificDays"), h.get("weeklyCount"), h.get("targetDays"))
                 habit_lines.append(
                     f"  - {h['name']}（目标：{h['target']}，"
-                    f"{h['frequency']}，提醒 {h.get('reminderTime', '无')}）"
+                    f"{freq_text}，提醒 {h.get('reminderTime', '无')}）"
                 )
             context += "- 已有活跃习惯：\n" + "\n".join(habit_lines) + "\n"
         else:
@@ -126,6 +146,39 @@ def validate_extracted_habit(habit: dict | None) -> dict | None:
     freq = habit.get("frequency")
     if freq not in VALID_FREQUENCIES:
         habit["frequency"] = "daily"
+
+    # 旧值 "weekly" 归一化为 "weekly_days"
+    if freq == "weekly":
+        habit["frequency"] = "weekly_days"
+
+    specific_days = habit.get("specificDays")
+    if specific_days is not None:
+        if not isinstance(specific_days, list) or not all(isinstance(d, int) and 1 <= d <= 7 for d in specific_days):
+            habit["specificDays"] = None
+
+    # 校验 weeklyCount（仅 weekly_count 有效）
+    wc = habit.get("weeklyCount")
+    if wc is not None:
+        if not isinstance(wc, int) or wc < 1 or wc > 7:
+            habit["weeklyCount"] = None
+    if habit["frequency"] == "weekly_count" and habit.get("weeklyCount") is None:
+        habit["weeklyCount"] = 3
+
+    # 校验 targetDays（仅 challenge 有效）
+    td = habit.get("targetDays")
+    if td is not None:
+        if not isinstance(td, int) or td < 1 or td > 365:
+            habit["targetDays"] = None
+    if habit["frequency"] == "challenge" and habit.get("targetDays") is None:
+        habit["targetDays"] = 21
+
+    # 非对应频率的字段清空
+    if habit["frequency"] != "weekly_days":
+        habit["specificDays"] = None
+    if habit["frequency"] != "weekly_count":
+        habit["weeklyCount"] = None
+    if habit["frequency"] != "challenge":
+        habit["targetDays"] = None
 
     reminder = habit.get("reminderTime")
     if reminder:

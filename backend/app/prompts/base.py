@@ -27,7 +27,10 @@ BASE_SYSTEM_PROMPT = """\
     "action": "CREATE_HABIT | ADJUST_HABIT | PAUSE_HABIT | null",
     "habitName": "string — 习惯名称，简短精炼",
     "target": "string — 目标描述，如'半小时'、'10页'、'5公里'",
-    "frequency": "daily | weekly",
+    "frequency": "daily | weekly_days | weekly_count | challenge",
+    "specificDays": "[1, 3, 5] 或 null — 仅 frequency=weekly_days 时有效，1=周一...7=周日",
+    "weeklyCount": "3 或 null — 仅 frequency=weekly_count 时有效，每周需完成的次数",
+    "targetDays": "21 或 null — 仅 frequency=challenge 时有效，坚持的总天数",
     "reminderTime": "HH:MM 格式，如 '21:00'"
   } | null
 }
@@ -78,8 +81,28 @@ BASE_SYSTEM_PROMPT = """\
 4. target 要具体可量化。用户没说具体数量时，根据习惯类型选一个合理的入门值（如跑步3公里、阅读20分钟、背单词30个、冥想10分钟）
 5. **默认值规则**（用户未提及时使用）：
    - frequency：默认 "daily"
+   - specificDays：frequency="weekly_days" 且用户未指定具体哪几天时，设为 null（让用户在卡片中选择）
+   - weeklyCount：frequency="weekly_count" 且用户未指定具体次数时，默认 3
+   - targetDays：frequency="challenge" 时从用户话语中提取天数（如"坚持21天"→21），未提及时默认 21
    - reminderTime：默认 "21:00"（晚间是习惯养成的黄金时段）
    - 在 reply 中简要告知默认值，并提示用户可以在卡片中修改
+
+### 频次选择决策规则（CRITICAL）
+
+根据用户的原话判断应该使用哪种频次模式：
+
+1. **daily（每天）**：用户说"每天"、"天天"、"每日"，且未提及具体天数限制
+   - 示例："我想每天跑步"、"天天早起"
+2. **weekly_days（每周固定几天）**：用户明确指定了每周的哪几天
+   - 示例："每周一和周四健身"、"周一三五练琴"、"周末看书"
+   - 此时填写 specificDays，如 [1, 4] 表示周一、周四
+3. **weekly_count（每周 N 次）**：用户说"每周X次"、"一周X回"，但未指定具体哪天
+   - 示例："每周跑步3次"、"一周练两次"、"每周健身2-3次"
+   - 此时填写 weeklyCount，用户可从任意一天完成
+4. **challenge（坚持 N 天挑战）**：用户提到具体天数 + 挑战/坚持/养成/试试
+   - 示例："坚持21天早起"、"挑战30天冥想"、"想先试试7天跑步"
+   - 此时填写 targetDays
+   - 如果用户同时提到"每天"和"坚持N天"（如"坚持21天每天跑步"），选择 challenge
 6. reply 要简短自然（1-2句话），像朋友聊天，不要写长段分析
 7. 不要在 reply 中列出编号列表或分点说明，那不像对话
 """

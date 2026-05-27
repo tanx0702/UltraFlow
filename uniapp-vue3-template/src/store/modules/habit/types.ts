@@ -1,10 +1,14 @@
+import type { FrequencyType } from '@/api/habit/types';
+
 export interface Habit {
   _id: string;
   userId: string;
   name: string;
   target: string;
-  frequency: 'daily' | 'weekly';
+  frequency: FrequencyType;
   specificDays?: number[];
+  weeklyCount?: number;
+  targetDays?: number;
   reminderTime: string;
   status: 'active' | 'paused' | 'completed' | 'archived';
   streak: number;
@@ -18,6 +22,9 @@ export interface DailyTask {
   habitId: string;
   name: string;
   target: string;
+  frequency: FrequencyType;
+  weeklyCount?: number;
+  targetDays?: number;
   reminderTime: string;
   completed: boolean;
   completedAt?: string;
