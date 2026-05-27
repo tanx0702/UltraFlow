@@ -1,7 +1,7 @@
 <template>
   <view class="min-h-screen bg-[#F8FAFC]">
     <!-- Header -->
-    <view class="bg-[#1E293B] px-32rpx pb-40rpx pt-80rpx">
+    <view class="sticky top-0 z-10 bg-[#1E293B] px-32rpx pb-40rpx pt-80rpx">
       <view class="flex items-center justify-between">
         <view>
           <view class="text-26rpx text-[#94A3B8]">{{ todayDate }}</view>
