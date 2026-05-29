@@ -4,38 +4,38 @@ import { createUniAppAxiosAdapter } from '@uni-helper/axios-adapter';
 import axios from 'axios';
 import { requestInterceptors, responseInterceptors } from './interceptors';
 
-// 引入拦截器配置
-export function request<T = any>(config?: IRequestConfig): Promise<T> {
+function getBaseURL(): string {
   let baseURL = import.meta.env.VITE_API_BASE_URL;
   // #ifdef H5
   if (import.meta.env.VITE_APP_PROXY === 'true') {
     baseURL = import.meta.env.VITE_API_PREFIX;
   }
   // #endif
-  const instance = axios.create({
-    baseURL,
-    timeout: 10000,
-    headers: {
-      'Content-Type': 'application/json;charset=UTF-8',
-    },
-    ...config,
-    adapter: createUniAppAxiosAdapter(),
-  });
+  return baseURL;
+}
 
-  requestInterceptors(instance);
-  responseInterceptors(instance);
+// 单例：只创建一次 axios 实例
+const instance = axios.create({
+  baseURL: getBaseURL(),
+  timeout: 10000,
+  headers: {
+    'Content-Type': 'application/json;charset=UTF-8',
+  },
+  adapter: createUniAppAxiosAdapter(),
+});
 
+// 拦截器只注册一次
+requestInterceptors(instance);
+responseInterceptors(instance);
+
+export function request<T = any>(config?: IRequestConfig): Promise<T> {
   return new Promise((resolve, reject) => {
     instance.request(config!).then((res: AxiosResponse<IResponse<T>>) => {
-      console.log('[ res ] >', res);
       const { data } = res.data;
       resolve(data != null ? data as T : res.data as T);
-    }).catch((err: any) => {
-      console.error('[ err ] >', err);
-      reject(err);
-    });
+    }).catch(reject);
   });
-};
+}
 
 export function get<T = any>(url: string, config?: IRequestConfig): Promise<T> {
   return request({ ...config, url, method: 'get' });
@@ -53,7 +53,6 @@ export function del<T = any>(url: string, config?: IRequestConfig): Promise<T> {
   return request({ ...config, url, method: 'delete' });
 }
 
-// 将data转换为FormData
 const transformFromData = (data: { [key: string]: string }) => {
   const formData = new FormData();
   for (const key in data) {

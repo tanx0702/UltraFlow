@@ -1,41 +1,7 @@
-import type { FrequencyType } from '@/api/habit/types';
-
-export interface Habit {
-  _id: string;
-  userId: string;
-  name: string;
-  target: string;
-  frequency: FrequencyType;
-  specificDays?: number[];
-  weeklyCount?: number;
-  targetDays?: number;
-  reminderTime: string;
-  icon?: string;
-  color?: string;
-  status: 'active' | 'paused' | 'completed' | 'archived';
-  streak: number;
-  bestStreak: number;
-  totalCheckIns: number;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface DailyTask {
-  habitId: string;
-  name: string;
-  target: string;
-  frequency: FrequencyType;
-  weeklyCount?: number;
-  targetDays?: number;
-  reminderTime: string;
-  icon?: string;
-  color?: string;
-  completed: boolean;
-  completedAt?: string;
-}
+export type { Habit, DailyTask, FrequencyType } from '@/models/habit.model';
 
 export interface HabitState {
-  habits: Habit[];
-  dailyTasks: DailyTask[];
+  habits: import('@/models/habit.model').Habit[];
+  dailyTasks: import('@/models/habit.model').DailyTask[];
   todayMotivation: string;
 }

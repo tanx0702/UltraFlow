@@ -2,17 +2,12 @@
 import { mpUpdate } from '@/utils/index';
 
 onLaunch(() => {
-  console.log('App Launch');
   // #ifdef MP-WEIXIN
   mpUpdate();
   // #endif
 });
-onShow(() => {
-  console.log('App Show');
-});
-onHide(() => {
-  console.log('App Hide');
-});
+onShow(() => {});
+onHide(() => {});
 </script>
 
 <style lang="scss">

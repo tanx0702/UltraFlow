@@ -1,20 +1,11 @@
-export type CoachPersona = 'drill_sergeant' | 'healing_friend' | 'rational_mentor';
-
-export type providerType =
-  | 'weixin'
-  | 'qq'
-  | 'sinaweibo'
-  | 'xiaomi'
-  | 'apple'
-  | 'univerify'
-  | undefined;
+export type { CoachPersona, ProviderType as providerType } from '@/models/user.model';
 
 export interface UserState {
   user_id: string;
   user_name: string;
   avatar: string;
   token: string;
-  coachPersona: CoachPersona;
+  coachPersona: import('@/models/user.model').CoachPersona;
   reminderEnabled: boolean;
   isLoggedIn: boolean;
 }

@@ -125,8 +125,8 @@
 </template>
 
 <script setup lang="ts">
-import type { HabitRes } from '@/api/habit/types';
-import type { CheckInDateInfo } from '@/api/checkin/types';
+import type { Habit } from '@/models/habit.model';
+import type { CheckInDateInfo } from '@/models/checkin.model';
 import { HabitApi, CheckInApi } from '@/api';
 import useHabitStore from '@/store/modules/habit';
 import { onLoad } from '@dcloudio/uni-app';
@@ -134,7 +134,7 @@ import { computed, ref } from 'vue';
 
 const habitStore = useHabitStore();
 
-const habit = ref<HabitRes | null>(null);
+const habit = ref<Habit | null>(null);
 const checkInDates = ref<CheckInDateInfo[]>([]);
 
 const now = new Date();

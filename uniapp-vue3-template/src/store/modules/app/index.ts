@@ -26,11 +26,7 @@ const useAppStore = defineStore('app', {
     },
     checkUpdate() {
       const updateManager = uni.getUpdateManager();
-      updateManager.onCheckForUpdate((res: UniApp.OnCheckForUpdateResult) => {
-        // 请求完新版本信息的回调
-
-        console.log(res.hasUpdate);
-      });
+      updateManager.onCheckForUpdate(() => {});
       updateManager.onUpdateReady(() => {
         uni.showModal({
           title: '更新提示',

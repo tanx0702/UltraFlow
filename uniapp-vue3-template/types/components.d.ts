@@ -8,8 +8,15 @@ export {}
 /* prettier-ignore */
 declare module 'vue' {
   export interface GlobalComponents {
+    EmptyState: typeof import('./../src/components/EmptyState/index.vue')['default']
+    FreqBadge: typeof import('./../src/components/FreqBadge/index.vue')['default']
+    HeatmapGrid: typeof import('./../src/components/HeatmapGrid/index.vue')['default']
+    PageHeader: typeof import('./../src/components/PageHeader/index.vue')['default']
     ProfileAuthPopup: typeof import('./../src/components/ProfileAuthPopup/ProfileAuthPopup.vue')['default']
+    ProgressRing: typeof import('./../src/components/ProgressRing/index.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
+    Stepper: typeof import('./../src/components/Stepper/index.vue')['default']
+    SwipeCard: typeof import('./../src/components/SwipeCard/index.vue')['default']
   }
 }

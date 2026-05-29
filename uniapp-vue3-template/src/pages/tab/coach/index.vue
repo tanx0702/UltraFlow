@@ -6,12 +6,12 @@
       <view class="mt-8rpx text-24rpx text-[#94A3B8]">定制你的专属AI教练</view>
     </view>
 
-    <!-- Profile Section -->
+    <!-- Profile -->
     <view class="mx-32rpx mt-24rpx rounded-20rpx bg-white p-24rpx shadow-sm">
       <view class="flex items-center">
-        <view class="h-80rpx w-80rpx flex items-center justify-center overflow-hidden rounded-full" style="background-color: rgba(14,165,233,0.1)">
+        <view class="h-80rpx w-80rpx flex items-center justify-center overflow-hidden rounded-full bg-[#0EA5E9]/10">
           <image v-if="userStore.avatar" :src="userStore.avatar" mode="aspectFill" class="h-full w-full" />
-          <text v-else class="text-40rpx" style="color: #0EA5E9">&#128100;</text>
+          <text v-else class="text-40rpx text-[#0EA5E9]">&#128100;</text>
         </view>
         <view class="ml-20rpx flex-1">
           <view class="text-30rpx font-bold text-[#1E293B]">{{ userStore.user_name || '未登录' }}</view>
@@ -27,33 +27,34 @@
         <text class="text-22rpx text-[#94A3B8]">共{{ habitStore.habits.length }}个</text>
       </view>
 
-      <!-- Habit List -->
       <view v-if="habitStore.habits.length > 0">
         <view
           v-for="habit in habitStore.habits"
           :key="habit._id"
-          class="flex items-center justify-between border-b border-[#F1F5F9] py-20rpx"
+          class="flex items-center justify-between border-b border-[#E2E8F0] py-20rpx"
           @tap="goToHabitDetail(habit._id)"
           @longpress="handleDeleteHabit(habit._id, habit.name)"
         >
-          <view>
-            <text class="text-26rpx text-[#334155]">{{ habit.name }}</text>
-            <text class="ml-12rpx text-22rpx text-[#94A3B8]">{{ habitFreqLabel(habit) }}</text>
+          <view class="flex items-center">
+            <text class="text-26rpx text-[#1E293B]">{{ habit.name }}</text>
+            <FreqBadge
+              :frequency="habit.frequency"
+              :weekly-count="habit.weeklyCount"
+              :target-days="habit.targetDays"
+              :specific-days="habit.specificDays"
+              class="ml-12rpx"
+            />
           </view>
           <view class="flex items-center">
-            <!-- Status Tag -->
             <view
               class="rounded-full px-16rpx py-4rpx"
-              :style="{
-                backgroundColor: habit.status === 'active' ? '#F0FDF4' : '#F1F5F9',
-              }"
+              :style="{ backgroundColor: habit.status === 'active' ? '#F0FDF4' : '#F1F5F9' }"
             >
               <text
                 class="text-20rpx"
                 :style="{ color: habit.status === 'active' ? '#10B981' : '#64748B' }"
               >{{ habit.status === 'active' ? '活跃' : '暂停' }}</text>
             </view>
-            <!-- Action Button -->
             <view class="ml-16rpx" @tap.stop="habit.status === 'active' ? handlePauseHabit(habit._id, habit.name) : handleResumeHabit(habit._id)">
               <text
                 class="text-22rpx"
@@ -63,17 +64,14 @@
           </view>
         </view>
       </view>
-
-      <!-- Empty State -->
       <view v-else class="py-48rpx text-center">
         <text class="text-26rpx text-[#94A3B8]">暂无习惯，去极律空间创建吧</text>
       </view>
     </view>
 
-    <!-- AI Persona Selection -->
+    <!-- AI Persona -->
     <view class="mx-32rpx mt-24rpx rounded-20rpx bg-white p-24rpx shadow-sm">
       <view class="mb-20rpx text-32rpx font-semibold text-[#1E293B]">&#129302; 选择你的 AI 教练</view>
-
       <view
         v-for="persona in personas"
         :key="persona.id"
@@ -91,41 +89,29 @@
         </view>
         <view
           v-if="userStore.coachPersona === persona.id"
-          class="h-40rpx w-40rpx flex items-center justify-center rounded-full"
-          style="background-color: #0EA5E9"
+          class="h-40rpx w-40rpx flex items-center justify-center rounded-full bg-[#0EA5E9]"
         >
           <text class="text-22rpx text-white">&#10003;</text>
         </view>
       </view>
     </view>
 
-    <!-- System Settings -->
+    <!-- Settings -->
     <view class="mx-32rpx mt-24rpx rounded-20rpx bg-white p-24rpx shadow-sm">
       <view class="mb-16rpx text-32rpx font-semibold text-[#1E293B]">&#9881;&#65039; 系统设置</view>
-
-      <!-- Reminder -->
-      <view class="flex items-center justify-between border-b border-[#F1F5F9] py-24rpx">
-        <text class="text-26rpx text-[#334155]">提醒通知</text>
-        <switch
-          :checked="userStore.reminderEnabled"
-          color="#0EA5E9"
-          @change="toggleReminder"
-        />
+      <view class="flex items-center justify-between border-b border-[#E2E8F0] py-24rpx">
+        <text class="text-26rpx text-[#1E293B]">提醒通知</text>
+        <switch :checked="userStore.reminderEnabled" color="#0EA5E9" @change="toggleReminder" />
       </view>
-
-      <!-- About -->
-      <view class="flex items-center justify-between border-b border-[#F1F5F9] py-24rpx" @tap="goAbout">
-        <text class="text-26rpx text-[#334155]">关于极律</text>
+      <view class="flex items-center justify-between border-b border-[#E2E8F0] py-24rpx" @tap="goAbout">
+        <text class="text-26rpx text-[#1E293B]">关于极律</text>
         <text class="text-28rpx text-[#94A3B8]">&#8250;</text>
       </view>
-
-      <!-- Logout Button -->
       <view class="mt-32rpx rounded-16rpx border border-[#FCA5A5] py-24rpx text-center" @tap="handleLogout">
         <text class="text-26rpx text-[#EF4444]">退出登录</text>
       </view>
     </view>
 
-    <!-- Version Info -->
     <view class="mt-40rpx pb-40rpx text-center">
       <text class="text-22rpx text-[#CBD5E1]">极律 UltraFlow v1.0.0</text>
     </view>
@@ -133,12 +119,12 @@
 </template>
 
 <script setup lang="ts">
-import type { CoachPersona } from '@/store/modules/user/types';
-import type { Habit } from '@/store/modules/habit/types';
+import type { CoachPersona } from '@/models/user.model';
 import useUserStore from '@/store/modules/user';
 import useHabitStore from '@/store/modules/habit';
 import { UserApi } from '@/api';
 import { LOGIN_PATH } from '@/router';
+import { PERSONA_OPTIONS } from '@/constants/persona';
 import { useAuth } from '@/composables';
 import { isLogin } from '@/utils/auth';
 import { onShow } from '@dcloudio/uni-app';
@@ -147,34 +133,16 @@ useAuth();
 const userStore = useUserStore();
 const habitStore = useHabitStore();
 
-function habitFreqLabel(habit: Habit): string {
-  switch (habit.frequency) {
-    case 'daily': return '每天';
-    case 'weekly_days': {
-      if (habit.specificDays && habit.specificDays.length > 0) {
-        const labels: Record<number, string> = { 1: '一', 2: '二', 3: '三', 4: '四', 5: '五', 6: '六', 7: '日' };
-        return '周' + habit.specificDays.map(d => labels[d]).join('、');
-      }
-      return '每周';
-    }
-    case 'weekly_count': return `每周${habit.weeklyCount || '?'}次`;
-    case 'challenge': return `坚持${habit.targetDays || '?'}天`;
-    default: return '';
-  }
-}
+const personas = PERSONA_OPTIONS;
 
 onShow(async () => {
   if (!isLogin()) return;
   try {
     await habitStore.fetchHabits();
-  } catch {}
+  } catch (e) {
+    console.error('[coach] fetchHabits failed', e);
+  }
 });
-
-const personas = [
-  { id: 'drill_sergeant' as CoachPersona, name: '硬核教官', icon: '💂', desc: '毒舌严厉，拒绝拖延，一针见血' },
-  { id: 'healing_friend' as CoachPersona, name: '治愈知己', icon: '💚', desc: '温柔鼓励，情感陪伴与安慰' },
-  { id: 'rational_mentor' as CoachPersona, name: '理性导师', icon: '🧠', desc: '客观逻辑，数据驱动，高效方案' },
-];
 
 async function selectPersona(persona: CoachPersona) {
   userStore.setPersona(persona);
@@ -232,7 +200,7 @@ function goToHabitDetail(habitId: string) {
 }
 
 function goAbout() {
-  uni.navigateTo({ url: '/pages/about/about' });
+  uni.showToast({ title: '暂未开放', icon: 'none' });
 }
 
 function handleLogout() {

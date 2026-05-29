@@ -6,57 +6,22 @@
       <view class="mt-8rpx text-24rpx text-[#94A3B8]">记录你的每一步成长</view>
     </view>
 
-    <!-- Heatmap Card -->
+    <!-- Heatmap -->
     <view class="mx-32rpx mt-24rpx rounded-20rpx bg-white p-24rpx shadow-sm">
-      <!-- Title + Month Selector -->
-      <view class="mb-3 flex items-center justify-between">
-        <text class="text-32rpx font-semibold text-[#1E293B]">自律热力图</text>
-        <view class="flex items-center gap-12rpx">
-          <view class="h-48rpx w-48rpx flex items-center justify-center" @tap="prevMonth">
-            <text class="text-28rpx text-[#94A3B8]">&#9664;</text>
-          </view>
-          <text class="text-24rpx font-medium text-[#475569]">{{ currentYear }}年{{ currentMonth }}月</text>
-          <view
-            class="h-48rpx w-48rpx flex items-center justify-center"
-            :class="isCurrentMonth ? 'opacity-30' : ''"
-            @tap="nextMonth"
-          >
-            <text class="text-28rpx text-[#94A3B8]">&#9654;</text>
-          </view>
-        </view>
-      </view>
-
-      <!-- Weekday Headers -->
-      <view class="mb-8rpx flex">
-        <view v-for="wd in weekdays" :key="wd" class="flex-1 text-center">
-          <text class="text-20rpx text-[#94A3B8]">{{ wd }}</text>
-        </view>
-      </view>
-
-      <!-- Heatmap Grid -->
-      <view class="flex flex-wrap">
-        <view
-          v-for="(cell, idx) in gridCells"
-          :key="idx"
-          class="rounded-6rpx"
-          :style="{ width: cellSize, height: cellSize, backgroundColor: cell.color, marginBottom: '6rpx', marginRight: idx % 7 === 6 ? '0' : '6rpx' }"
-          @tap="cell.data ? showDetail(cell.data) : undefined"
-        />
-      </view>
-
-      <!-- Color Legend -->
-      <view class="mt-16rpx flex items-center justify-end">
-        <text class="mr-8rpx text-20rpx text-[#94A3B8]">少</text>
-        <view class="mr-4rpx h-16rpx w-16rpx rounded-2rpx" style="background-color: #E5E7EB" />
-        <view class="mr-4rpx h-16rpx w-16rpx rounded-2rpx" style="background-color: #A7F3D0" />
-        <view class="mr-4rpx h-16rpx w-16rpx rounded-2rpx" style="background-color: #6EE7B7" />
-        <view class="mr-4rpx h-16rpx w-16rpx rounded-2rpx" style="background-color: #10B981" />
-        <view class="mr-8rpx h-16rpx w-16rpx rounded-2rpx" style="background-color: #047857" />
-        <text class="text-20rpx text-[#94A3B8]">多</text>
-      </view>
+      <HeatmapGrid
+        title="自律热力图"
+        :year="currentYear"
+        :month="currentMonth"
+        :is-current-month="isCurrentMonth"
+        :cells="gridCells"
+        legend
+        @prev-month="prevMonth"
+        @next-month="nextMonth"
+        @cell-tap="selectedDay = $event"
+      />
     </view>
 
-    <!-- Day Detail Popup -->
+    <!-- Day Detail -->
     <view v-if="selectedDay" class="mx-32rpx mt-16rpx rounded-20rpx bg-white p-32rpx shadow-sm">
       <view class="flex items-center justify-between">
         <text class="text-28rpx font-bold text-[#1E293B]">{{ selectedDay.date }}</text>
@@ -78,13 +43,12 @@
       </view>
     </view>
 
-    <!-- Habit Rankings -->
+    <!-- Rankings -->
     <view class="mx-32rpx mt-24rpx flex gap-16rpx">
-      <!-- Full Attendance Ranking -->
       <view class="flex-1 rounded-20rpx bg-white p-24rpx shadow-sm">
         <text class="text-26rpx font-bold text-[#10B981]">&#127942; 全勤榜</text>
         <view v-if="fullAttendanceRanking.length > 0" class="mt-12rpx">
-          <view v-for="(item, idx) in fullAttendanceRanking" :key="item._id" class="mb-8rpx flex items-center">
+          <view v-for="(item, idx) in fullAttendanceRanking" :key="item._id" class="mb-8rpx">
             <text class="text-24rpx text-[#1E293B]">{{ idx + 1 }}. {{ item.name }} - {{ item.streak }}天</text>
           </view>
         </view>
@@ -92,12 +56,10 @@
           <text class="text-24rpx text-[#94A3B8]">暂无数据</text>
         </view>
       </view>
-
-      <!-- Easy to Break Ranking -->
       <view class="flex-1 rounded-20rpx bg-white p-24rpx shadow-sm">
         <text class="text-26rpx font-bold text-[#EF4444]">&#9888;&#65039; 易断卡榜</text>
         <view v-if="easyBreakRanking.length > 0" class="mt-12rpx">
-          <view v-for="(item, idx) in easyBreakRanking" :key="item._id" class="mb-8rpx flex items-center">
+          <view v-for="(item, idx) in easyBreakRanking" :key="item._id" class="mb-8rpx">
             <text class="text-24rpx text-[#1E293B]">{{ idx + 1 }}. {{ item.name }} - 断卡{{ item.breakCount }}次</text>
           </view>
         </view>
@@ -107,25 +69,21 @@
       </view>
     </view>
 
-    <!-- AI Weekly Report -->
+    <!-- Weekly Report -->
     <view class="mx-32rpx mt-24rpx mb-32rpx rounded-20rpx bg-white p-32rpx shadow-sm">
       <view class="flex items-center justify-between">
         <text class="text-28rpx font-bold text-[#1E293B]">&#128202; AI 复盘周报</text>
         <text v-if="weeklyReport" class="text-22rpx text-[#94A3B8]">{{ weeklyReport.dateRange }}</text>
       </view>
-
-      <!-- Has Report -->
       <view v-if="weeklyReport" class="mt-16rpx">
-        <text class="text-26rpx leading-[1.8] text-[#475569]">{{ weeklyReport.content }}</text>
-        <view class="mt-16rpx h-1rpx bg-[#E2E8F0]" />
+        <text class="text-26rpx leading-[1.8] text-[#64748B]">{{ weeklyReport.content }}</text>
+        <view class="mt-16rpx h-1rpx bg-[#F8FAFC]" />
         <view class="mt-16rpx flex items-center justify-between">
           <text class="text-22rpx text-[#94A3B8]">打卡率: {{ Math.round(weeklyReport.stats.checkInRate * 100) }}%</text>
           <text class="text-22rpx text-[#94A3B8]">总打卡: {{ weeklyReport.stats.totalCheckIns }}次</text>
           <text class="text-22rpx text-[#94A3B8]">最佳: {{ weeklyReport.stats.bestDay }}</text>
         </view>
       </view>
-
-      <!-- No Report -->
       <view v-else class="mt-24rpx">
         <text class="text-24rpx text-[#94A3B8]">暂无本周数据</text>
       </view>
@@ -134,171 +92,26 @@
 </template>
 
 <script setup lang="ts">
-import useHabitStore from '@/store/modules/habit';
-import useCheckInStore from '@/store/modules/checkin';
+import { useStats } from './composables/useStats';
+import HeatmapGrid from '@/components/HeatmapGrid/index.vue';
 import { useAuth } from '@/composables';
-import { isLogin } from '@/utils/auth';
 import { onShow } from '@dcloudio/uni-app';
-import { computed, ref, watch } from 'vue';
 
 useAuth();
-const habitStore = useHabitStore();
-const checkinStore = useCheckInStore();
 
-const now = new Date();
-const currentYear = ref(now.getFullYear());
-const currentMonth = ref(now.getMonth() + 1);
-const selectedDay = ref<{ date: string; count: number; total: number } | null>(null);
-
-async function loadData() {
-  if (!isLogin()) return;
-  try {
-    await Promise.all([
-      habitStore.fetchHabits(),
-      checkinStore.fetchCheckInDates(currentYear.value, currentMonth.value),
-      checkinStore.fetchWeekStats(),
-    ]);
-  } catch {}
-}
+const {
+  currentYear,
+  currentMonth,
+  isCurrentMonth,
+  selectedDay,
+  gridCells,
+  fullAttendanceRanking,
+  easyBreakRanking,
+  weeklyReport,
+  loadData,
+  prevMonth,
+  nextMonth,
+} = useStats();
 
 onShow(loadData);
-
-watch([currentYear, currentMonth], () => {
-  checkinStore.fetchCheckInDates(currentYear.value, currentMonth.value);
-});
-
-const weekdays = ['一', '二', '三', '四', '五', '六', '日'];
-
-const cellSize = computed(() => {
-  // 7 columns with gaps: (750rpx - 48rpx*2 padding - 6rpx*6 gaps) / 7 ≈ 87rpx
-  return '86rpx';
-});
-
-const isCurrentMonth = computed(() => {
-  return currentYear.value === now.getFullYear() && currentMonth.value === now.getMonth() + 1;
-});
-
-const heatmapDataMap = computed(() => {
-  return checkinStore.checkInDates.reduce<Record<string, { count: number; total: number }>>((map, d) => {
-    map[d.date] = { count: d.count, total: d.total };
-    return map;
-  }, {});
-});
-
-function getHeatmapColor(count: number, total: number): string {
-  if (total === 0) return '#E5E7EB';
-  const rate = count / total;
-  if (rate === 0) return '#E5E7EB';
-  if (rate <= 0.25) return '#A7F3D0';
-  if (rate <= 0.5) return '#6EE7B7';
-  if (rate <= 0.75) return '#10B981';
-  return '#047857';
-}
-
-interface GridCell {
-  dateStr: string;
-  color: string;
-  data: { date: string; count: number; total: number } | null;
-}
-
-const gridCells = computed<GridCell[]>(() => {
-  const year = currentYear.value;
-  const month = currentMonth.value;
-  const daysInMonth = new Date(year, month, 0).getDate();
-  // 0=Sun, 1=Mon, ..., 6=Sat → convert to Mon=0 start
-  let firstDayOfWeek = new Date(year, month - 1, 1).getDay();
-  firstDayOfWeek = firstDayOfWeek === 0 ? 6 : firstDayOfWeek - 1;
-
-  const cells: GridCell[] = [];
-
-  // Empty leading cells
-  for (let i = 0; i < firstDayOfWeek; i++) {
-    cells.push({ dateStr: '', color: 'transparent', data: null });
-  }
-
-  // Day cells
-  for (let d = 1; d <= daysInMonth; d++) {
-    const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
-    const data = heatmapDataMap.value[dateStr] || null;
-
-    let color: string;
-    if (data) {
-      color = getHeatmapColor(data.count, data.total);
-    } else if (new Date(dateStr) > now) {
-      color = '#F1F5F9';
-    } else {
-      color = '#E5E7EB';
-    }
-
-    cells.push({
-      dateStr,
-      color,
-      data: data ? { date: dateStr, count: data.count, total: data.total } : null,
-    });
-  }
-
-  return cells;
-});
-
-function showDetail(data: { date: string; count: number; total: number }) {
-  selectedDay.value = data;
-}
-
-function prevMonth() {
-  if (currentMonth.value === 1) {
-    currentMonth.value = 12;
-    currentYear.value--;
-  } else {
-    currentMonth.value--;
-  }
-  selectedDay.value = null;
-}
-
-function nextMonth() {
-  if (isCurrentMonth.value) return;
-  if (currentMonth.value === 12) {
-    currentMonth.value = 1;
-    currentYear.value++;
-  } else {
-    currentMonth.value++;
-  }
-  selectedDay.value = null;
-}
-
-// Habit Rankings
-const fullAttendanceRanking = computed(() => {
-  return habitStore.habits
-    .filter(h => h.streak > 0)
-    .sort((a, b) => b.streak - a.streak)
-    .slice(0, 5);
-});
-
-const easyBreakRanking = computed(() => {
-  return habitStore.habits
-    .map(h => ({ ...h, breakCount: h.totalCheckIns - h.streak }))
-    .filter(h => h.breakCount > 0)
-    .sort((a, b) => b.breakCount - a.breakCount)
-    .slice(0, 5);
-});
-
-// Weekly Report
-const weekDateRange = computed(() => {
-  const now = new Date();
-  const weekStart = new Date(now);
-  weekStart.setDate(now.getDate() - now.getDay() + 1);
-  const weekEnd = new Date(weekStart);
-  weekEnd.setDate(weekStart.getDate() + 6);
-  const fmt = (d: Date) => `${d.getMonth() + 1}.${d.getDate()}`;
-  return `${fmt(weekStart)} - ${fmt(weekEnd)}`;
-});
-
-const weeklyReport = computed(() => {
-  if (!checkinStore.weeklyStats) return null;
-  const s = checkinStore.weeklyStats;
-  return {
-    dateRange: weekDateRange.value,
-    content: `本周打卡率 ${Math.round(s.checkInRate * 100)}%，共 ${s.totalCheckIns} 次打卡`,
-    stats: s,
-  };
-});
 </script>

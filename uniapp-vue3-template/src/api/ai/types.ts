@@ -1,21 +1,11 @@
+import type { FrequencyType } from '@/models/habit.model';
+import type { ExtractedHabit } from '@/models/ai.model';
+
+export type { ExtractedHabit };
+
 export interface SendMessageReq {
   message: string;
   conversationId?: string;
-}
-
-import type { FrequencyType } from '../habit/types';
-
-export interface ExtractedHabit {
-  action: 'CREATE_HABIT' | 'ADJUST_HABIT' | 'PAUSE_HABIT';
-  habitName: string;
-  target: string;
-  frequency: FrequencyType;
-  specificDays: number[] | null;
-  weeklyCount: number | null;
-  targetDays: number | null;
-  reminderTime: string | null;
-  icon?: string | null;
-  color?: string | null;
 }
 
 export interface SendMessageRes {

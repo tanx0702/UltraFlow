@@ -1,4 +1,7 @@
-export type FrequencyType = 'daily' | 'weekly' | 'weekly_days' | 'weekly_count' | 'challenge';
+import type { FrequencyType } from '@/models/habit.model';
+
+export type { FrequencyType };
+export type { Habit as HabitRes } from '@/models/habit.model';
 
 export interface CreateHabitReq {
   name: string;
@@ -22,24 +25,4 @@ export interface UpdateHabitReq {
   reminderTime?: string;
   icon?: string;
   color?: string;
-}
-
-export interface HabitRes {
-  _id: string;
-  userId: string;
-  name: string;
-  target: string;
-  frequency: FrequencyType;
-  specificDays?: number[];
-  weeklyCount?: number;
-  targetDays?: number;
-  reminderTime: string;
-  icon?: string;
-  color?: string;
-  status: 'active' | 'paused' | 'completed' | 'archived';
-  streak: number;
-  bestStreak: number;
-  totalCheckIns: number;
-  createdAt: string;
-  updatedAt: string;
 }
