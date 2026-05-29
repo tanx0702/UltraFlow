@@ -1,5 +1,5 @@
 <template>
-  <view class="flex h-screen flex-col bg-[#F8FAFC]">
+  <view class="flex flex-col bg-[#F8FAFC]" :style="{ height: containerHeight + 'px' }">
     <!-- Header -->
     <view class="bg-[#1E293B] px-32rpx pb-24rpx pt-80rpx">
       <view class="flex items-center">
@@ -143,7 +143,10 @@
             class="w-full text-28rpx text-[#1E293B]"
             placeholder="告诉教练你的目标..."
             :disabled="aiStore.isTyping"
+            :adjust-position="false"
             @confirm="handleSend"
+            @focus="onInputFocus"
+            @blur="onInputBlur"
           />
         </view>
 
@@ -303,6 +306,9 @@ const habitStore = useHabitStore();
 
 const inputText = ref('');
 const scrollToView = ref('');
+const keyboardHeight = ref(0);
+const windowHeight = uni.getSystemInfoSync().windowHeight;
+const containerHeight = ref(windowHeight);
 
 const isSendDisabled = computed(() => inputText.value.trim() === '' || aiStore.isTyping);
 
@@ -334,6 +340,18 @@ async function sendMessage(content: string) {
 
   inputText.value = '';
   await aiStore.sendMessage(content);
+  scrollToBottom();
+}
+
+function onInputFocus(e: any) {
+  keyboardHeight.value = e.detail.height || 0;
+  containerHeight.value = windowHeight - keyboardHeight.value;
+  setTimeout(() => scrollToBottom(), 300);
+}
+
+function onInputBlur() {
+  keyboardHeight.value = 0;
+  containerHeight.value = windowHeight;
   scrollToBottom();
 }
 
