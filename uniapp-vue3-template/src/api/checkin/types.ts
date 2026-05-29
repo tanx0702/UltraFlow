@@ -26,3 +26,12 @@ export interface WeeklyStats {
   bestDay: string;
   missedDays: string[];
 }
+
+export interface WeekDayStatus {
+  date: string;
+  dayLabel: string;
+  checkInCount: number;
+  totalHabits: number;
+  completed: boolean;
+  isToday: boolean;
+}

@@ -10,6 +10,8 @@ export interface Habit {
   weeklyCount?: number;
   targetDays?: number;
   reminderTime: string;
+  icon?: string;
+  color?: string;
   status: 'active' | 'paused' | 'completed' | 'archived';
   streak: number;
   bestStreak: number;
@@ -26,6 +28,8 @@ export interface DailyTask {
   weeklyCount?: number;
   targetDays?: number;
   reminderTime: string;
+  icon?: string;
+  color?: string;
   completed: boolean;
   completedAt?: string;
 }

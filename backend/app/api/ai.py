@@ -66,6 +66,8 @@ async def chat(request: ChatRequest, current_user: dict = Depends(get_current_us
             weeklyCount=extracted.get("weeklyCount"),
             targetDays=extracted.get("targetDays"),
             reminderTime=extracted.get("reminderTime"),
+            icon=extracted.get("icon"),
+            color=extracted.get("color"),
         )
 
     # Persist conversation
@@ -115,6 +117,8 @@ async def confirm_habit(request: ConfirmHabitRequest, current_user: dict = Depen
         "weeklyCount": request.weeklyCount,
         "targetDays": request.targetDays,
         "reminderTime": request.reminderTime,
+        "icon": request.icon or "📋",
+        "color": request.color or "#3B82F6",
         "status": "active",
         "streak": 0,
         "bestStreak": 0,
@@ -133,6 +137,8 @@ async def confirm_habit(request: ConfirmHabitRequest, current_user: dict = Depen
         "weeklyCount": request.weeklyCount,
         "targetDays": request.targetDays,
         "reminderTime": request.reminderTime,
+        "icon": request.icon or "📋",
+        "color": request.color or "#3B82F6",
         "status": "active",
         "streak": 0,
         "bestStreak": 0,

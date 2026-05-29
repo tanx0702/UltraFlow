@@ -31,6 +31,8 @@ def habit_doc_to_response(doc: dict) -> HabitResponse:
         weeklyCount=doc.get("weeklyCount"),
         targetDays=doc.get("targetDays"),
         reminderTime=doc.get("reminderTime"),
+        icon=doc.get("icon", "📋"),
+        color=doc.get("color", "#3B82F6"),
         status=doc.get("status", "active"),
         streak=doc.get("streak", 0),
         bestStreak=doc.get("bestStreak", 0),
@@ -120,6 +122,8 @@ async def create_habit(request: CreateHabitRequest, current_user: dict = Depends
         "weeklyCount": request.weeklyCount,
         "targetDays": request.targetDays,
         "reminderTime": request.reminderTime,
+        "icon": request.icon or "📋",
+        "color": request.color or "#3B82F6",
         "status": HabitStatus.ACTIVE.value,
         "streak": 0,
         "bestStreak": 0,
@@ -149,6 +153,10 @@ async def update_habit(habit_id: str, request: UpdateHabitRequest):
         update_data["targetDays"] = request.targetDays
     if request.reminderTime is not None:
         update_data["reminderTime"] = request.reminderTime
+    if request.icon is not None:
+        update_data["icon"] = request.icon
+    if request.color is not None:
+        update_data["color"] = request.color
 
     result = await habits_collection.update_one(
         {"_id": ObjectId(habit_id)},

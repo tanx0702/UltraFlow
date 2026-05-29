@@ -1,4 +1,4 @@
-import type { CheckInDateInfo, CheckInReq, CheckInRes, WeeklyStats } from './types';
+import type { CheckInDateInfo, CheckInReq, CheckInRes, WeekDayStatus, WeeklyStats } from './types';
 import { get, post } from '@/utils/request';
 
 /** 打卡 */
@@ -16,3 +16,6 @@ export const getHabitCheckInDates = (habitId: string, year: number, month: numbe
 
 /** 获取本周统计 */
 export const getWeekStats = () => get<WeeklyStats>('/api/checkins/week-stats');
+
+/** 获取本周每日打卡状态 */
+export const getWeekDayStatus = () => get<WeekDayStatus[]>('/api/checkins/week-days');

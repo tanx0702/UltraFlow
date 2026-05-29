@@ -31,7 +31,9 @@ BASE_SYSTEM_PROMPT = """\
     "specificDays": "[1, 3, 5] 或 null — 仅 frequency=weekly_days 时有效，1=周一...7=周日",
     "weeklyCount": "3 或 null — 仅 frequency=weekly_count 时有效，每周需完成的次数",
     "targetDays": "21 或 null — 仅 frequency=challenge 时有效，坚持的总天数",
-    "reminderTime": "HH:MM 格式，如 '21:00'"
+    "reminderTime": "HH:MM 格式，如 '21:00'",
+    "icon": "string — 一个适合该习惯的 emoji，如 🏃 📖 🧘 💪 🎯 ✍️",
+    "color": "string — 一个十六进制颜色值，如 #10B981 #3B82F6 #F59E0B #EF4444 #8B5CF6"
   } | null
 }
 

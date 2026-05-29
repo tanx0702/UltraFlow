@@ -71,7 +71,7 @@ async def build_user_context(user_doc: dict | None) -> str:
                 freq = h.get("frequency", "daily")
                 freq_text = _format_frequency(freq, h.get("specificDays"), h.get("weeklyCount"), h.get("targetDays"))
                 habit_lines.append(
-                    f"  - {h['name']}（目标：{h['target']}，"
+                    f"  - {h.get('icon', '📋')} {h['name']}（目标：{h['target']}，"
                     f"{freq_text}，提醒 {h.get('reminderTime', '无')}）"
                 )
             context += "- 已有活跃习惯：\n" + "\n".join(habit_lines) + "\n"

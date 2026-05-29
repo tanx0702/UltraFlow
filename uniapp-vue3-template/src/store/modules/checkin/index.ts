@@ -7,6 +7,7 @@ const useCheckInStore = defineStore('checkin', {
     todayCheckIns: [],
     checkInDates: [],
     weeklyStats: null,
+    weekDayStatuses: [],
     loading: false,
   }),
   getters: {
@@ -33,6 +34,9 @@ const useCheckInStore = defineStore('checkin', {
     },
     async fetchWeekStats() {
       this.weeklyStats = await CheckInApi.getWeekStats();
+    },
+    async fetchWeekDayStatuses() {
+      this.weekDayStatuses = await CheckInApi.getWeekDayStatus();
     },
   },
   persist: true,

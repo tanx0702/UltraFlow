@@ -8,6 +8,8 @@ export interface CreateHabitReq {
   weeklyCount?: number;
   targetDays?: number;
   reminderTime: string;
+  icon?: string;
+  color?: string;
 }
 
 export interface UpdateHabitReq {
@@ -18,6 +20,8 @@ export interface UpdateHabitReq {
   weeklyCount?: number;
   targetDays?: number;
   reminderTime?: string;
+  icon?: string;
+  color?: string;
 }
 
 export interface HabitRes {
@@ -30,6 +34,8 @@ export interface HabitRes {
   weeklyCount?: number;
   targetDays?: number;
   reminderTime: string;
+  icon?: string;
+  color?: string;
   status: 'active' | 'paused' | 'completed' | 'archived';
   streak: number;
   bestStreak: number;

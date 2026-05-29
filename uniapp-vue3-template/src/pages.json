@@ -13,7 +13,8 @@
       "needLogin": true,
       "style": {
         "navigationBarTitleText": "今日看板",
-        "navigationStyle": "custom"
+        "navigationStyle": "custom",
+        "enablePullDownRefresh": true
       }
     },
     {

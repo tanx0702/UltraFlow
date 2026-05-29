@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from datetime import datetime, date, timedelta, timezone
 from bson import ObjectId
-from app.models.habit import CheckInRequest, CheckInResponse, CheckInDateInfo, WeeklyStats
+from app.models.habit import CheckInRequest, CheckInResponse, CheckInDateInfo, WeeklyStats, WeekDayStatus
 from app.models.common import ApiResponse
 from app.core.database import habits_collection, checkins_collection
 from app.core.deps import get_current_user
@@ -257,6 +257,37 @@ async def get_habit_checkin_dates(
         ))
         current += timedelta(days=1)
 
+    return ApiResponse(data=result).model_dump()
+
+
+@router.get("/week-days", response_model=ApiResponse[list[WeekDayStatus]])
+async def get_week_day_statuses(current_user: dict = Depends(get_current_user)):
+    user_id = current_user["_id"]
+    today = date.today()
+    monday = today - timedelta(days=today.weekday())
+
+    total_habits = await habits_collection.count_documents({
+        "userId": user_id, "status": "active"
+    })
+
+    day_labels = ["周一", "周二", "周三", "周四", "周五", "周六", "周日"]
+    result = []
+    for i in range(7):
+        d = monday + timedelta(days=i)
+        start_dt = datetime(d.year, d.month, d.day, tzinfo=timezone.utc)
+        end_dt = start_dt + timedelta(days=1)
+        count = await checkins_collection.count_documents({
+            "userId": user_id,
+            "checkInDate": {"$gte": start_dt, "$lt": end_dt},
+        })
+        result.append(WeekDayStatus(
+            date=d.isoformat(),
+            dayLabel=day_labels[i],
+            checkInCount=count,
+            totalHabits=total_habits,
+            completed=(count >= total_habits and total_habits > 0),
+            isToday=(d == today),
+        ))
     return ApiResponse(data=result).model_dump()
 
 

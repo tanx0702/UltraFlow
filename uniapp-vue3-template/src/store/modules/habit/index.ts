@@ -42,6 +42,8 @@ const useHabitStore = defineStore('habit', {
         weeklyCount: habit.weeklyCount,
         targetDays: habit.targetDays,
         reminderTime: habit.reminderTime,
+        icon: habit.icon,
+        color: habit.color,
         completed: false,
       }));
     },

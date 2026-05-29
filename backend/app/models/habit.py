@@ -27,6 +27,8 @@ class CreateHabitRequest(BaseModel):
     weeklyCount: Optional[int] = Field(None, ge=1, le=7)
     targetDays: Optional[int] = Field(None, ge=1, le=365)
     reminderTime: str = Field(..., pattern=r"^\d{2}:\d{2}$")
+    icon: Optional[str] = None
+    color: Optional[str] = None
 
 
 class UpdateHabitRequest(BaseModel):
@@ -37,6 +39,8 @@ class UpdateHabitRequest(BaseModel):
     weeklyCount: Optional[int] = Field(None, ge=1, le=7)
     targetDays: Optional[int] = Field(None, ge=1, le=365)
     reminderTime: Optional[str] = Field(None, pattern=r"^\d{2}:\d{2}$")
+    icon: Optional[str] = None
+    color: Optional[str] = None
 
 
 class HabitResponse(BaseModel):
@@ -49,6 +53,8 @@ class HabitResponse(BaseModel):
     weeklyCount: Optional[int] = None
     targetDays: Optional[int] = None
     reminderTime: Optional[str] = None
+    icon: str = "📋"
+    color: str = "#3B82F6"
     status: HabitStatus
     streak: int = 0
     bestStreak: int = 0
@@ -84,3 +90,12 @@ class WeeklyStats(BaseModel):
     checkInRate: float
     bestDay: str
     missedDays: list[str]
+
+
+class WeekDayStatus(BaseModel):
+    date: str
+    dayLabel: str
+    checkInCount: int
+    totalHabits: int
+    completed: bool
+    isToday: bool

@@ -12,6 +12,8 @@ class HabitCardData(BaseModel):
     weeklyCount: Optional[int] = None
     targetDays: Optional[int] = None
     reminderTime: Optional[str] = None
+    icon: Optional[str] = None
+    color: Optional[str] = None
 
 
 class ChatRequest(BaseModel):
@@ -33,4 +35,6 @@ class ConfirmHabitRequest(BaseModel):
     weeklyCount: Optional[int] = None
     targetDays: Optional[int] = None
     reminderTime: Optional[str] = None
+    icon: Optional[str] = None
+    color: Optional[str] = None
     force: bool = False

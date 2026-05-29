@@ -28,7 +28,7 @@
           <view class="mt-2rpx text-20rpx text-[#94A3B8]">天最佳</view>
         </view>
         <view class="flex-1 rounded-16rpx bg-[#334155] p-16rpx text-center">
-          <text class="text-26rpx">📋</text>
+          <text class="text-26rpx">{{ habit?.icon || '📋' }}</text>
           <view class="mt-4rpx text-36rpx font-bold text-white">{{ habit?.totalCheckIns ?? 0 }}</view>
           <view class="mt-2rpx text-20rpx text-[#94A3B8]">次累计</view>
         </view>

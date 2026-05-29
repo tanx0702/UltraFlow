@@ -15,7 +15,9 @@ FEW_SHOT_EXAMPLES = """\
     "habitName": "跑步",
     "target": "3公里",
     "frequency": "daily",
-    "reminderTime": "21:00"
+    "reminderTime": "21:00",
+    "icon": "🏃",
+    "color": "#10B981"
   }
 }
 
@@ -31,7 +33,9 @@ FEW_SHOT_EXAMPLES = """\
     "habitName": "背单词",
     "target": "30个",
     "frequency": "daily",
-    "reminderTime": "21:00"
+    "reminderTime": "21:00",
+    "icon": "📖",
+    "color": "#3B82F6"
   }
 }
 
@@ -67,7 +71,9 @@ FEW_SHOT_EXAMPLES = """\
     "habitName": "跑步",
     "target": "3公里",
     "frequency": "daily",
-    "reminderTime": "21:00"
+    "reminderTime": "21:00",
+    "icon": "🏃",
+    "color": "#10B981"
   }
 }
 
@@ -85,7 +91,9 @@ FEW_SHOT_EXAMPLES = """\
     "habitName": "早起",
     "target": "9:00起床",
     "frequency": "daily",
-    "reminderTime": "09:00"
+    "reminderTime": "09:00",
+    "icon": "☀️",
+    "color": "#F59E0B"
   }
 }
 
@@ -103,7 +111,9 @@ FEW_SHOT_EXAMPLES = """\
     "habitName": "阅读",
     "target": "半小时",
     "frequency": "daily",
-    "reminderTime": "21:00"
+    "reminderTime": "21:00",
+    "icon": "📖",
+    "color": "#8B5CF6"
   }
 }
 
@@ -120,7 +130,9 @@ FEW_SHOT_EXAMPLES = """\
     "target": "3公里",
     "frequency": "weekly_count",
     "weeklyCount": 3,
-    "reminderTime": "21:00"
+    "reminderTime": "21:00",
+    "icon": "🏃",
+    "color": "#10B981"
   }
 }
 
@@ -137,7 +149,9 @@ FEW_SHOT_EXAMPLES = """\
     "target": "7:00起床",
     "frequency": "challenge",
     "targetDays": 21,
-    "reminderTime": "07:00"
+    "reminderTime": "07:00",
+    "icon": "☀️",
+    "color": "#F59E0B"
   }
 }
 
@@ -154,7 +168,9 @@ FEW_SHOT_EXAMPLES = """\
     "target": "1小时",
     "frequency": "weekly_days",
     "specificDays": [1, 4],
-    "reminderTime": "19:00"
+    "reminderTime": "19:00",
+    "icon": "💪",
+    "color": "#EF4444"
   }
 }
 """

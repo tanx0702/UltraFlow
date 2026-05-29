@@ -14,6 +14,8 @@ export interface ExtractedHabit {
   weeklyCount: number | null;
   targetDays: number | null;
   reminderTime: string | null;
+  icon?: string | null;
+  color?: string | null;
 }
 
 export interface SendMessageRes {
@@ -30,5 +32,7 @@ export interface ConfirmHabitReq {
   weeklyCount?: number | null;
   targetDays?: number | null;
   reminderTime?: string | null;
+  icon?: string | null;
+  color?: string | null;
   force?: boolean;
 }
