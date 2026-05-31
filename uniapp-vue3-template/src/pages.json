@@ -13,8 +13,7 @@
       "needLogin": true,
       "style": {
         "navigationBarTitleText": "今日看板",
-        "navigationStyle": "custom",
-        "enablePullDownRefresh": true
+        "navigationStyle": "custom"
       }
     },
     {
@@ -61,6 +60,13 @@
           "needLogin": true,
           "style": {
             "navigationBarTitleText": "习惯详情",
+            "navigationStyle": "custom"
+          }
+        },
+        {
+          "path": "profile-edit/index",
+          "needLogin": true,
+          "style": {
             "navigationStyle": "custom"
           }
         },

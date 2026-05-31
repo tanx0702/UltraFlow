@@ -84,7 +84,7 @@ export function useChat() {
         conflictState.newHabit = msg.extractedHabit;
         conflictState.visible = true;
       } else {
-        uni.showToast({ title: '操作失败', icon: 'none' });
+        uni.showToast({ title: '操作失败', icon: 'error' });
       }
     }
   }
@@ -105,7 +105,7 @@ export function useChat() {
       if (lastAI) lastAI.habitConfirmed = true;
       uni.showToast({ title: `已调整：${conflictState.existing.name}`, icon: 'success' });
     } catch {
-      uni.showToast({ title: '调整失败', icon: 'none' });
+      uni.showToast({ title: '调整失败', icon: 'error' });
     }
     closeConflict();
   }
@@ -118,7 +118,7 @@ export function useChat() {
       uni.showToast({ title: '已开启', icon: 'success' });
       uni.vibrateShort({ type: 'medium' });
     } catch {
-      uni.showToast({ title: '创建失败', icon: 'none' });
+      uni.showToast({ title: '创建失败', icon: 'error' });
     }
     closeConflict();
   }

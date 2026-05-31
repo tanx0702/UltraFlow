@@ -1,4 +1,4 @@
-import type { CoachPersona, ProviderType } from '@/models/user.model';
+import type { CoachPersona, Gender, ProviderType } from '@/models/user.model';
 import { PERSONA_LABELS, PERSONA_DESCRIPTIONS } from '@/constants/persona';
 import { UserApi } from '@/api';
 import { clearToken, setToken } from '@/utils/auth';
@@ -9,6 +9,8 @@ const useUserStore = defineStore('user', () => {
   const user_id = ref('');
   const user_name = ref('');
   const avatar = ref('');
+  const gender = ref<Gender>('private');
+  const birthday = ref('');
   const token = ref('');
   const coachPersona = ref<CoachPersona>('rational_mentor');
   const reminderEnabled = ref(false);
@@ -21,6 +23,8 @@ const useUserStore = defineStore('user', () => {
     if (partial.user_id !== undefined) user_id.value = partial.user_id;
     if (partial.user_name !== undefined) user_name.value = partial.user_name;
     if (partial.avatar !== undefined) avatar.value = partial.avatar;
+    if (partial.gender !== undefined) gender.value = partial.gender;
+    if (partial.birthday !== undefined) birthday.value = partial.birthday;
     if (partial.token !== undefined) token.value = partial.token;
     if (partial.coachPersona !== undefined) coachPersona.value = partial.coachPersona;
     if (partial.reminderEnabled !== undefined) reminderEnabled.value = partial.reminderEnabled;
@@ -31,6 +35,8 @@ const useUserStore = defineStore('user', () => {
     user_id.value = '';
     user_name.value = '';
     avatar.value = '';
+    gender.value = 'private';
+    birthday.value = '';
     token.value = '';
     coachPersona.value = 'rational_mentor';
     reminderEnabled.value = false;
@@ -50,6 +56,8 @@ const useUserStore = defineStore('user', () => {
         user_id: res.user._id,
         user_name: res.user.nickname,
         avatar: res.user.avatar,
+        gender: res.user.gender || 'private',
+        birthday: res.user.birthday || '',
         token: res.token,
         coachPersona: res.user.coachPersona as CoachPersona,
         reminderEnabled: res.user.reminderEnabled,
@@ -80,10 +88,12 @@ const useUserStore = defineStore('user', () => {
     });
   }
 
-  async function updateProfile(data: { nickname?: string; avatar?: string }) {
+  async function updateProfile(data: { nickname?: string; avatar?: string; gender?: Gender; birthday?: string }) {
     await UserApi.updateProfile(data);
     if (data.nickname) user_name.value = data.nickname;
     if (data.avatar) avatar.value = data.avatar;
+    if (data.gender) gender.value = data.gender;
+    if (data.birthday) birthday.value = data.birthday;
   }
 
   function setPersona(persona: CoachPersona) {
@@ -101,7 +111,7 @@ const useUserStore = defineStore('user', () => {
   }
 
   return {
-    user_id, user_name, avatar, token, coachPersona, reminderEnabled, isLoggedIn,
+    user_id, user_name, avatar, gender, birthday, token, coachPersona, reminderEnabled, isLoggedIn,
     coachPersonaName, coachPersonaDescription,
     setInfo, resetInfo, info, loginByCode, authLogin,
     updateProfile, setPersona, toggleReminder, logout,

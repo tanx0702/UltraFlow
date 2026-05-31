@@ -7,7 +7,7 @@
     </view>
 
     <!-- Profile -->
-    <view class="mx-32rpx mt-24rpx rounded-20rpx bg-white p-24rpx shadow-sm">
+    <view class="mx-32rpx mt-24rpx rounded-20rpx bg-white p-24rpx shadow-sm" @tap="goProfileEdit">
       <view class="flex items-center">
         <view class="h-80rpx w-80rpx flex items-center justify-center overflow-hidden rounded-full bg-[#0EA5E9]/10">
           <image v-if="userStore.avatar" :src="userStore.avatar" mode="aspectFill" class="h-full w-full" />
@@ -15,8 +15,8 @@
         </view>
         <view class="ml-20rpx flex-1">
           <view class="text-30rpx font-bold text-[#1E293B]">{{ userStore.user_name || '未登录' }}</view>
-          <view class="mt-4rpx text-24rpx text-[#94A3B8]">{{ userStore.coachPersonaName }}</view>
         </view>
+        <text class="text-28rpx text-[#94A3B8]">&#8250;</text>
       </view>
     </view>
 
@@ -150,7 +150,7 @@ async function selectPersona(persona: CoachPersona) {
     await UserApi.updateCoachPersona({ coachPersona: persona });
     uni.showToast({ title: `已切换为${userStore.coachPersonaName}`, icon: 'success' });
   } catch {
-    uni.showToast({ title: '更新失败', icon: 'none' });
+    uni.showToast({ title: '更新失败', icon: 'error' });
   }
 }
 
@@ -160,7 +160,7 @@ async function toggleReminder() {
     await UserApi.updateReminder({ reminderEnabled: userStore.reminderEnabled });
   } catch {
     userStore.toggleReminder();
-    uni.showToast({ title: '更新失败', icon: 'none' });
+    uni.showToast({ title: '更新失败', icon: 'error' });
   }
 }
 
@@ -197,6 +197,10 @@ function handleDeleteHabit(habitId: string, habitName: string) {
 
 function goToHabitDetail(habitId: string) {
   uni.navigateTo({ url: `/pages/common/habit-detail/index?habitId=${habitId}` });
+}
+
+function goProfileEdit() {
+  uni.navigateTo({ url: '/pages/common/profile-edit/index' });
 }
 
 function goAbout() {

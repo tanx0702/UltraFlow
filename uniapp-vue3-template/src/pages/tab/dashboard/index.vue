@@ -109,7 +109,7 @@ import { useDashboard } from './composables/useDashboard';
 import DashboardHeader from './components/DashboardHeader.vue';
 import TaskGroup from './components/TaskGroup.vue';
 import CelebrationBanner from './components/CelebrationBanner.vue';
-import { onPullDownRefresh, onShow } from '@dcloudio/uni-app';
+import { onShow } from '@dcloudio/uni-app';
 import { computed } from 'vue';
 import { useAuth } from '@/composables';
 
@@ -148,9 +148,4 @@ function goToDetail(habitId: string) {
 }
 
 onShow(loadData);
-
-onPullDownRefresh(async () => {
-  await loadData();
-  uni.stopPullDownRefresh();
-});
 </script>

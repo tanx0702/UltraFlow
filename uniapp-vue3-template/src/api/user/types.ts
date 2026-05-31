@@ -1,6 +1,6 @@
-import type { CoachPersona } from '@/models/user.model';
+import type { CoachPersona, Gender } from '@/models/user.model';
 
-export type { CoachPersona };
+export type { CoachPersona, Gender };
 
 export interface LoginReq {
   code: string;
@@ -13,6 +13,8 @@ export interface LoginRes {
     openid: string;
     nickname: string;
     avatar: string;
+    gender: Gender;
+    birthday: string;
     coachPersona: string;
     reminderEnabled: boolean;
   };
@@ -24,6 +26,8 @@ export interface ProfileRes {
   openid: string;
   nickname: string;
   avatar: string;
+  gender: Gender;
+  birthday: string;
   coachPersona: string;
   reminderEnabled: boolean;
   createdAt: string;
@@ -41,4 +45,6 @@ export interface UpdateReminderReq {
 export interface UpdateProfileReq {
   nickname?: string;
   avatar?: string;
+  gender?: Gender;
+  birthday?: string;
 }

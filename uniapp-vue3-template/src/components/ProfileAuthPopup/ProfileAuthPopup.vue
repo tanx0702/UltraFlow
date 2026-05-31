@@ -63,7 +63,7 @@
 
 <script setup lang="ts">
 import { ref, watch } from 'vue';
-import { getToken } from '@/utils/auth';
+import { useUpload } from '@/composables';
 
 const props = defineProps<{
   visible: boolean;
@@ -78,6 +78,7 @@ const nickname = ref('');
 const avatarUrl = ref('');
 const avatarTempPath = ref('');
 const saving = ref(false);
+const { uploadFile } = useUpload();
 
 watch(() => props.visible, (val) => {
   if (val) {
@@ -96,41 +97,20 @@ function onNicknameInput(e: any) {
   nickname.value = e.detail.value || '';
 }
 
-async function uploadAvatar(tempPath: string): Promise<string> {
-  const baseURL = import.meta.env.VITE_API_BASE_URL;
-  return new Promise((resolve, reject) => {
-    uni.uploadFile({
-      url: `${baseURL}/api/common/upload`,
-      filePath: tempPath,
-      name: 'file',
-      header: { token: getToken() || '' },
-      success: (res) => {
-        if (res.statusCode === 200) {
-          const body = JSON.parse(res.data);
-          resolve(body.data);
-        } else {
-          reject(new Error('上传失败'));
-        }
-      },
-      fail: () => reject(new Error('上传失败')),
-    });
-  });
-}
-
 async function onConfirm() {
   if (saving.value) return;
   saving.value = true;
   try {
     let permanentUrl = '';
     if (avatarTempPath.value) {
-      permanentUrl = await uploadAvatar(avatarTempPath.value);
+      permanentUrl = await uploadFile(avatarTempPath.value);
     }
     emit('confirm', {
       nickname: nickname.value.trim(),
       avatar: permanentUrl,
     });
   } catch {
-    uni.showToast({ title: '头像上传失败', icon: 'none' });
+    uni.showToast({ title: '头像上传失败', icon: 'error' });
     saving.value = false;
   }
 }

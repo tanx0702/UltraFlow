@@ -92,7 +92,7 @@ function handleWechatLogin() {
     }
   }).catch((err: any) => {
     uni.hideLoading();
-    uni.showToast({ title: err?.message || '登录失败', icon: 'none' });
+    uni.showToast({ title: err?.message || '登录失败', icon: 'error' });
   });
 }
 
@@ -104,7 +104,7 @@ async function onProfileConfirm(data: { nickname: string; avatar: string }) {
     await userStore.updateProfile(payload);
     uni.showToast({ title: '登录成功', icon: 'success' });
   } catch {
-    uni.showToast({ title: '信息保存失败', icon: 'none' });
+    uni.showToast({ title: '信息保存失败', icon: 'error' });
   }
   showProfileAuth.value = false;
   setTimeout(navigateHome, 800);
