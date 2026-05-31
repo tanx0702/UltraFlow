@@ -20,21 +20,24 @@
       "path": "pages/tab/chat/index",
       "needLogin": true,
       "style": {
-        "navigationBarTitleText": "极律空间"
+        "navigationBarTitleText": "极律空间",
+        "navigationStyle": "custom"
       }
     },
     {
       "path": "pages/tab/stats/index",
       "needLogin": true,
       "style": {
-        "navigationBarTitleText": "成长轨迹"
+        "navigationBarTitleText": "成长轨迹",
+        "navigationStyle": "custom"
       }
     },
     {
       "path": "pages/tab/coach/index",
       "needLogin": true,
       "style": {
-        "navigationBarTitleText": "教练配置"
+        "navigationBarTitleText": "教练配置",
+        "navigationStyle": "custom"
       }
     }
   ],
