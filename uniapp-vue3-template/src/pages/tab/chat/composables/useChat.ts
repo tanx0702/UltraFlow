@@ -3,7 +3,7 @@ import type { ExtractedHabit } from '@/models/ai.model';
 import useAIStore from '@/store/modules/ai';
 import useHabitStore from '@/store/modules/habit';
 import { HabitApi } from '@/api';
-import { computed, nextTick, reactive, ref, watch } from 'vue';
+import { computed, nextTick, onUnmounted, reactive, ref, watch } from 'vue';
 
 export function useChat() {
   const aiStore = useAIStore();
@@ -12,8 +12,7 @@ export function useChat() {
   const inputText = ref('');
   const scrollToView = ref('');
   const keyboardHeight = ref(0);
-  const windowHeight = uni.getSystemInfoSync().windowHeight;
-  const containerHeight = ref(windowHeight);
+  const inputBarHeight = 104; // py-16rpx*2 + h-72rpx ≈ 32+72=104rpx → ~52px
 
   const isSendDisabled = computed(() => inputText.value.trim() === '' || aiStore.isTyping);
 
@@ -47,17 +46,36 @@ export function useChat() {
     scrollToBottom();
   }
 
-  function onInputFocus(e: any) {
-    keyboardHeight.value = e.detail.height || 0;
-    containerHeight.value = windowHeight - keyboardHeight.value;
-    setTimeout(() => scrollToBottom(), 300);
-  }
+  // ── Keyboard Handling ──
+  // onKeyboardHeightChange 比 @focus 的 e.detail.height 更可靠
+  // 刘海屏上报的键盘高度包含 SafeArea 底部，需要减去避免输入框过高
+
+  const sysInfo = uni.getSystemInfoSync();
+  // onKeyboardHeightChange 上报的高度基于屏幕底部，fixed bottom 基于视口底部
+  // 差值 = 状态栏高度 = screenHeight - windowHeight
+  const statusBarHeight = sysInfo.screenHeight - sysInfo.windowHeight;
+  let debounceTimer: ReturnType<typeof setTimeout> | null = null;
+
+  uni.onKeyboardHeightChange((res) => {
+    if (debounceTimer) clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(() => {
+      const corrected = Math.max(0, res.height - statusBarHeight);
+      keyboardHeight.value = corrected;
+      if (corrected > 0) {
+        setTimeout(() => scrollToBottom(), 150);
+      }
+    }, 100);
+  });
 
   function onInputBlur() {
     keyboardHeight.value = 0;
-    containerHeight.value = windowHeight;
     scrollToBottom();
   }
+
+  onUnmounted(() => {
+    uni.offKeyboardHeightChange();
+    if (debounceTimer) clearTimeout(debounceTimer);
+  });
 
   // ── Confirm Habit ──
 
@@ -214,12 +232,12 @@ export function useChat() {
     aiStore,
     inputText,
     scrollToView,
-    containerHeight,
+    keyboardHeight,
+    inputBarHeight,
     isSendDisabled,
     suggestions,
     handleSend,
     sendMessage,
-    onInputFocus,
     onInputBlur,
     confirmHabit,
     dismissHabit,

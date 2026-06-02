@@ -1,5 +1,5 @@
 <template>
-  <view class="flex flex-col bg-[#F8FAFC]" :style="{ height: containerHeight + 'px' }">
+  <view class="flex flex-col h-screen bg-[#F8FAFC]">
     <!-- Header -->
     <view class="bg-[#1E293B] px-32rpx pb-24rpx pt-80rpx">
       <view class="flex items-center">
@@ -19,6 +19,7 @@
       scroll-y
       :scroll-into-view="scrollToView"
       scroll-with-animation
+      :style="{ paddingBottom: (inputBarHeight + 20) + 'rpx' }"
     >
       <view class="p-24rpx">
         <!-- Welcome -->
@@ -71,7 +72,7 @@
     </scroll-view>
 
     <!-- Input Bar -->
-    <view class="border-t border-[#E2E8F0] bg-white px-24rpx py-16rpx">
+    <view class="fixed left-0 right-0 z-50 border-t border-[#E2E8F0] bg-white px-24rpx py-16rpx" :style="{ bottom: keyboardHeight + 'px' }">
       <view class="flex h-72rpx items-center justify-between gap-16rpx">
         <view class="h-full flex-1 flex items-center rounded-full bg-[#F8FAFC] px-24rpx">
           <input
@@ -81,7 +82,6 @@
             :disabled="aiStore.isTyping"
             :adjust-position="false"
             @confirm="handleSend"
-            @focus="onInputFocus"
             @blur="onInputBlur"
           />
         </view>
@@ -96,6 +96,7 @@
     </view>
 
     <!-- Edit Popup -->
+
     <EditHabitPopup
       :visible="editState.visible"
       :field="editState.field"
@@ -137,12 +138,12 @@ const {
   aiStore,
   inputText,
   scrollToView,
-  containerHeight,
+  keyboardHeight,
+  inputBarHeight,
   isSendDisabled,
   suggestions,
   handleSend,
   sendMessage,
-  onInputFocus,
   onInputBlur,
   confirmHabit,
   dismissHabit,
